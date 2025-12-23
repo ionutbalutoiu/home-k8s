@@ -1,0 +1,14 @@
+store:
+  kind: ClusterSecretStore
+  name: onepassword-k8s
+
+secrets: []
+  # - name: my-secret-name
+  #   data:
+  #     - secret_key: "first-k8s-secret-key"
+  #       external_secret_id: "my awesome 1password secret"
+  #       external_secret_key: username
+  #
+  #     - secret_key: "second-k8s-secret-key"
+  #       external_secret_id: "my awesome 1password secret"
+  #       external_secret_key: password
