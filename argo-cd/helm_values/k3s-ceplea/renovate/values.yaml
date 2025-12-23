@@ -1,0 +1,26 @@
+cronjob:
+  timeZone: Etc/GMT+2 # Bucharest Timezone
+  schedule: "0 * * * *" # Every hour
+
+renovate:
+  config: |
+    {
+      "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+      "repositories": [
+        "ionutbalutoiu/home-k8s"
+      ]
+    }
+  persistence:
+    cache:
+      enabled: true
+      storageClass: longhorn-2r
+      storageSize: 5Gi
+
+env:
+  LOG_LEVEL: debug
+  RENOVATE_PLATFORM: github
+  RENOVATE_AUTODISCOVER: "false"
+  RENOVATE_GIT_AUTHOR: "balutoiu-bot <balutoiubot@gmail.com>"
+  RENOVATE_BASE_DIR: /tmp/renovate/
+
+existingSecret: renovate-secrets
