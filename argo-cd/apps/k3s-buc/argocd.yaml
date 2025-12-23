@@ -1,0 +1,46 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: argocd
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  sources:
+    - chart: argo-cd
+      repoURL: https://argoproj.github.io/argo-helm
+      targetRevision: 9.2.0
+      helm:
+        valueFiles:
+          - $values/argo-cd/helm_values/k3s-buc/argocd/values.yaml
+    - repoURL: https://github.com/ionutbalutoiu/home-k8s.git
+      path: charts/external-secrets
+      targetRevision: HEAD
+      helm:
+        valueFiles:
+          - $values/argo-cd/helm_values/k3s-buc/argocd/values_external_secrets.yaml
+    - repoURL: https://github.com/ionutbalutoiu/home-k8s.git
+      targetRevision: HEAD
+      ref: values
+    - path: argo-cd/extras/k3s-buc/argocd
+      repoURL: https://github.com/ionutbalutoiu/home-k8s.git
+      targetRevision: HEAD
+      directory:
+        recurse: true
+  destination:
+    namespace: argocd
+    server: https://kubernetes.default.svc
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      - PruneLast=true
+    automated:
+      prune: true
+      selfHeal: true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m

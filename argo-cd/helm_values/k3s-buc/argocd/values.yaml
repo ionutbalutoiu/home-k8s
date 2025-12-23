@@ -1,0 +1,144 @@
+global:
+  domain: argo.internal.buc.balutoiu.com
+  securityContext:
+    fsGroup: 999
+
+controller:
+  resources:
+    requests:
+      cpu: 48m
+      memory: 680Mi
+    limits:
+      memory: 680Mi
+
+redis:
+  resources:
+    requests:
+      cpu: 7m
+      memory: 32Mi
+    limits:
+      memory: 32Mi
+
+applicationSet:
+  ingress:
+    enabled: true
+    hostname: argo-applicationset.balutoiu.com
+    path: /api/webhook
+    ingressClassName: traefik-external
+  resources:
+    requests:
+      cpu: 1m
+      memory: 48Mi
+    limits:
+      memory: 48Mi
+
+server:
+  ingress:
+    enabled: true
+    ingressClassName: traefik-internal
+  resources:
+    requests:
+      cpu: 2m
+      memory: 95Mi
+    limits:
+      memory: 95Mi
+
+dex:
+  enabled: false
+
+repoServer:
+  env:
+    - name: HELM_PLUGINS
+      value: /gitops-tools/helm-plugins/
+    - name: HELM_SECRETS_CURL_PATH
+      value: /gitops-tools/curl
+    - name: HELM_SECRETS_SOPS_PATH
+      value: /gitops-tools/sops
+    - name: HELM_SECRETS_BACKEND
+      value: sops
+    # https://github.com/jkroepke/helm-secrets/wiki/Security-in-shared-environments
+    - name: HELM_SECRETS_VALUES_ALLOW_SYMLINKS
+      value: "false"
+    - name: HELM_SECRETS_VALUES_ALLOW_ABSOLUTE_PATH
+      value: "true"
+    - name: HELM_SECRETS_VALUES_ALLOW_PATH_TRAVERSAL
+      value: "false"
+    - name: HELM_SECRETS_WRAPPER_ENABLED
+      value: "true"
+    - name: HELM_SECRETS_DECRYPT_SECRETS_IN_TMP_DIR
+      value: "true"
+    - name: HELM_SECRETS_HELM_PATH
+      value: /usr/local/bin/helm
+    # SOPS configuration
+    - name: SOPS_AGE_KEY_FILE
+      value: /helm-secrets-private-keys/age-private-keys.txt
+  volumes:
+    - name: gitops-tools
+      emptyDir: {}
+    - name: helm-secrets-private-keys
+      secret:
+        secretName: helm-secrets-private-keys
+        defaultMode: 288 # "440" in octal
+  volumeMounts:
+    - mountPath: /gitops-tools
+      name: gitops-tools
+    - mountPath: /usr/local/sbin/helm
+      subPath: helm
+      name: gitops-tools
+    - mountPath: /helm-secrets-private-keys/
+      name: helm-secrets-private-keys
+  initContainers:
+    - name: download-tools
+      image: alpine:3.23.2
+      imagePullPolicy: IfNotPresent
+      command: [sh, -ec]
+      env:
+        - name: HELM_SECRETS_VERSION
+          value: "4.6.5"
+        - name: CURL_VERSION
+          value: "8.11.0"
+        - name: SOPS_VERSION
+          value: "3.10.2"
+      args:
+        - |
+          mkdir -p /gitops-tools/helm-plugins
+          wget -qO- https://github.com/jkroepke/helm-secrets/releases/download/v${HELM_SECRETS_VERSION}/helm-secrets.tar.gz | tar -C /gitops-tools/helm-plugins -xzf-
+          cp /gitops-tools/helm-plugins/helm-secrets/scripts/wrapper/helm.sh /gitops-tools/helm
+
+          GO_ARCH=$(uname -m | sed -e 's/x86_64/amd64/')
+          wget -qO /gitops-tools/curl https://github.com/moparisthebest/static-curl/releases/download/v${CURL_VERSION}/curl-${GO_ARCH}
+
+          GO_ARCH=$(uname -m | sed -e 's/x86_64/amd64/' -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/')
+          wget -qO /gitops-tools/sops https://github.com/getsops/sops/releases/download/v${SOPS_VERSION}/sops-v${SOPS_VERSION}.linux.${GO_ARCH}
+
+          chmod +x /gitops-tools/*
+      volumeMounts:
+        - mountPath: /gitops-tools
+          name: gitops-tools
+  resources:
+    requests:
+      cpu: 8m
+      memory: 533Mi
+    limits:
+      memory: 533Mi
+
+configs:
+  cm:
+    helm.valuesFileSchemes: >-
+      secrets+age-import, secrets+age-import-kubernetes,
+      secrets,secrets+literal,
+      https
+  params:
+    server.insecure: true
+    controller.sync.timeout.seconds: 300 # 5 minutes
+  secret:
+    createSecret: false # We manage it with external secrets
+
+notifications:
+  argocdUrl: https://argo.internal.buc.balutoiu.com
+  resources:
+    requests:
+      cpu: 1m
+      memory: 48Mi
+    limits:
+      memory: 48Mi
