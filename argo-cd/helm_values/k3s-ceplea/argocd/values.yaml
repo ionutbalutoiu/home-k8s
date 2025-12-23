@@ -136,7 +136,6 @@ repoServer:
   volumes:
     - name: gitops-tools
       emptyDir: {}
-    # kubectl create secret generic helm-secrets-private-keys --from-file=age-private-keys.txt=keys.txt
     - name: helm-secrets-private-keys
       secret:
         secretName: helm-secrets-private-keys
