@@ -9,6 +9,11 @@ on:
       - argo-cd/extras/**
       - argo-cd/helm_values/**
 
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
 jobs:
   argocd-app-diff:
     runs-on: home-ubuntu-k8s
