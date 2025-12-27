@@ -8,18 +8,7 @@ spec:
     - dnsName: "*.balutoiu.com"
       recordType: CNAME
       targets:
-        - balutoiu-ceplea.go.ro
----
-apiVersion: externaldns.k8s.io/v1alpha1
-kind: DNSEndpoint
-metadata:
-  name: external-auth-balutoiu-com
-spec:
-  endpoints:
-    - dnsName: "auth.balutoiu.com"
-      recordType: CNAME
-      targets:
-        - balutoiu-ceplea.go.ro
+        - balutoiu.com
 ---
 apiVersion: externaldns.k8s.io/v1alpha1
 kind: DNSEndpoint
