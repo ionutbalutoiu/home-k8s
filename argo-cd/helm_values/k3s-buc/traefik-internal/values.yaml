@@ -1,0 +1,68 @@
+deployment:
+  kind: Deployment
+  replicas: 1
+  annotations:
+    reloader.stakater.com/auto: "true"
+
+service:
+  type: LoadBalancer
+  annotations:
+    metallb.io/loadBalancerIPs: 10.130.11.90
+
+ports:
+  traefiksecure:
+    port: 9443
+    expose:
+      default: true
+    tls:
+      enabled: true
+  web:
+    redirections:
+      entryPoint:
+        to: websecure
+        scheme: https
+        permanent: true
+
+ingressClass:
+  enabled: true
+  isDefaultClass: true
+  name: traefik-internal
+
+providers:
+  kubernetesCRD:
+    enabled: true
+    ingressClass: traefik-internal
+    allowCrossNamespace: true
+    allowExternalNameServices: true
+  kubernetesIngress:
+    enabled: true
+    ingressClass: traefik-internal
+  file:
+    enabled: true
+    watch: false
+    content: |
+      tls:
+        certificates:
+          - certFile: /certs/wildcard-internal-buc-balutoiu-com/tls.crt
+            keyFile: /certs/wildcard-internal-buc-balutoiu-com/tls.key
+
+volumes:
+  - name: le-wildcard-internal-buc-balutoiu-com-tls
+    mountPath: "/certs/wildcard-internal-buc-balutoiu-com"
+    type: secret
+
+ingressRoute:
+  dashboard:
+    enabled: true
+    annotations:
+      kubernetes.io/ingress.class: traefik-internal
+    matchRule: Host(`traefik.internal.buc.balutoiu.com`)
+    entryPoints:
+      - "traefiksecure"
+
+resources:
+  requests:
+    cpu: 5m
+    memory: 96Mi
+  limits:
+    memory: 96Mi

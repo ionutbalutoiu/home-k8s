@@ -1,0 +1,41 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: traefik-internal
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  sources:
+    - chart: traefik
+      repoURL: https://helm.traefik.io/traefik
+      targetRevision: 38.0.1
+      helm:
+        skipCrds: true
+        valueFiles:
+          - $values/argo-cd/helm_values/k3s-buc/traefik-internal/values.yaml
+    - repoURL: git@github.com:balutoiu/k3s.git
+      targetRevision: HEAD
+      ref: values
+    - path: argo-cd/extras/k3s-buc/traefik-internal
+      repoURL: git@github.com:balutoiu/k3s.git
+      targetRevision: HEAD
+      directory:
+        recurse: true
+  destination:
+    namespace: traefik-internal
+    server: https://kubernetes.default.svc
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      - PruneLast=true
+    automated:
+      prune: true
+      selfHeal: true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
