@@ -1,0 +1,26 @@
+---
+apiVersion: externaldns.k8s.io/v1alpha1
+kind: DNSEndpoint
+metadata:
+  name: external-buc-balutoiu-com
+spec:
+  endpoints:
+    - dnsName: "buc.balutoiu.com"
+      recordType: CNAME
+      targets:
+        - balutoiu-buc.go.ro
+    - dnsName: "*.buc.balutoiu.com"
+      recordType: CNAME
+      targets:
+        - balutoiu-buc.go.ro
+---
+apiVersion: externaldns.k8s.io/v1alpha1
+kind: DNSEndpoint
+metadata:
+  name: traefik-buc-balutoiu-com
+spec:
+  endpoints:
+    - dnsName: "traefik.buc.balutoiu.com"
+      recordType: A
+      targets:
+        - 10.130.11.100

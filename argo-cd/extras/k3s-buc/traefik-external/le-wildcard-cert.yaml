@@ -1,0 +1,13 @@
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: le-wildcard-buc-balutoiu-com
+spec:
+  secretName: le-wildcard-buc-balutoiu-com-tls
+  dnsNames:
+    - "buc.balutoiu.com"
+    - "*.buc.balutoiu.com"
+  issuerRef:
+    name: le-prod
+    kind: ClusterIssuer
