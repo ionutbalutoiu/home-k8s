@@ -1,0 +1,35 @@
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: security-headers
+spec:
+  headers:
+    frameDeny: true
+    browserXssFilter: true
+    referrerPolicy: "no-referrer"
+    hostsProxyHeaders:
+      - X-Forwarded-Host
+
+    # Instructs some browsers to not sniff the mimetype of files.
+    # This is used for example to prevent browsers from interpreting
+    # text files as JavaScript.
+    contentTypeNosniff: true
+
+    # HSTS
+    stsIncludeSubdomains: true
+    stsPreload: true
+    stsSeconds: 31536000
+
+    # X-Frame-Options. Prevents embedding of the instance within
+    # an iframe from other domains to prevent Clickjacking and
+    # other similar attacks.
+    customFrameOptionsValue: SAMEORIGIN
+
+    # contentSecurityPolicy: "default-src self"
+    permissionsPolicy: "geolocation=(), microphone=(), camera=()"
+
+    # Remove unnecessary headers which expose used server software.
+    customResponseHeaders:
+      server: ""
+      x-powered-by: ""
