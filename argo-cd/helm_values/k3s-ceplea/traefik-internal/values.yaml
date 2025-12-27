@@ -1,0 +1,96 @@
+deployment:
+  kind: Deployment
+  replicas: 2
+  annotations:
+    reloader.stakater.com/auto: "true"
+
+service:
+  type: LoadBalancer
+  spec:
+    loadBalancerIP: "10.119.20.30"
+
+ports:
+  traefiksecure:
+    port: 9443
+    expose:
+      default: true
+    tls:
+      enabled: true
+  web:
+    redirections:
+      entryPoint:
+        to: websecure
+        scheme: https
+        permanent: true
+  websecure:
+    asDefault: true
+
+gateway:
+  listeners:
+    web:
+      port: 8000
+      hostname: "*.internal.balutoiu.com"
+      protocol: HTTP
+      namespacePolicy:
+        from: Same
+    websecure:
+      port: 8443
+      hostname: "*.internal.balutoiu.com"
+      protocol: HTTPS
+      namespacePolicy:
+        from: All
+      certificateRefs:
+        - name: le-wildcard-internal-balutoiu-com-tls
+
+ingressClass:
+  enabled: true
+  isDefaultClass: true
+  name: traefik-internal
+
+gatewayClass:
+  enabled: true
+  name: traefik-internal
+  labels:
+    traefik: internal
+
+providers:
+  kubernetesCRD:
+    enabled: true
+    ingressClass: traefik-internal
+    allowCrossNamespace: true
+    allowExternalNameServices: true
+  kubernetesIngress:
+    enabled: true
+    ingressClass: traefik-internal
+  kubernetesGateway:
+    enabled: true
+    labelSelector: "traefik=internal"
+  file:
+    enabled: true
+    watch: false
+    content: |
+      tls:
+        certificates:
+          - certFile: /certs/wildcard-internal-balutoiu-com/tls.crt
+            keyFile: /certs/wildcard-internal-balutoiu-com/tls.key
+
+volumes:
+  - name: le-wildcard-internal-balutoiu-com-tls
+    mountPath: "/certs/wildcard-internal-balutoiu-com"
+    type: secret
+
+ingressRoute:
+  dashboard:
+    enabled: true
+    annotations:
+      kubernetes.io/ingress.class: traefik-internal
+    matchRule: Host(`traefik.internal.balutoiu.com`)
+    entryPoints:
+      - "traefiksecure"
+
+resources:
+  requests:
+    cpu: 5m
+    memory: 256Mi
+  limits:
+    memory: 256Mi

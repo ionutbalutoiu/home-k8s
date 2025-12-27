@@ -1,0 +1,11 @@
+---
+apiVersion: externaldns.k8s.io/v1alpha1
+kind: DNSEndpoint
+metadata:
+  name: internal-balutoiu-com
+spec:
+  endpoints:
+    - dnsName: "*.internal.balutoiu.com"
+      recordType: A
+      targets:
+        - 10.119.20.30
