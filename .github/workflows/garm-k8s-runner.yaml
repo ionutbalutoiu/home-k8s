@@ -1,0 +1,38 @@
+name: GARM K8s Runner
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - images/garm-k8s-runner/**
+
+jobs:
+  container-image-tag:
+    runs-on: ubuntu-latest
+    outputs:
+      image_tag: ${{ steps.set-image-tag.outputs.image_tag }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set garm-k8s-runner image tag
+        id: set-image-tag
+        shell: bash
+        run: |
+          set -eo pipefail
+
+          RUNNER_VERSION=$(cat ./images/garm-k8s-runner/Dockerfile | grep -E "FROM.+ghcr.io/actions/actions-runner" | cut -d ':' -f2)
+          GIT_SHA="${GITHUB_SHA::7}"
+
+          echo "image_tag=${RUNNER_VERSION}-${GIT_SHA}" >> $GITHUB_OUTPUT
+
+  container-image:
+    uses: ionutbalutoiu/gha-utils/.github/workflows/docker-buildx.yaml@main
+    needs: container-image-tag
+    with:
+      image_name: garm-k8s-runner
+      image_tag: ${{ needs.container-image-tag.outputs.image_tag }}
+      context: ./images/garm-k8s-runner
+      platforms: linux/amd64
+    secrets: inherit
