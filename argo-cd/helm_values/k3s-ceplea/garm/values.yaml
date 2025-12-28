@@ -103,7 +103,7 @@ configMaps:
   vars:
     data:
       # renovate: datasource=docker depName=garm-k8s-runner packageName=ghcr.io/ionutbalutoiu/garm-k8s-runner versioning=loose
-      GARM_K8S_RUNNER_IMAGE_TAG: 2.329.0-ce65795
+      GARM_K8S_RUNNER_IMAGE_TAG: 2.330.0-c8a4f14
 
   scripts:
     data:
