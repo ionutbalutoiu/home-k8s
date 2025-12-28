@@ -95,7 +95,7 @@ repoServer:
       env:
         # renovate: datasource=github-releases depName=helm-secrets packageName=jkroepke/helm-secrets
         - name: HELM_SECRETS_VERSION
-          value: "4.6.5"
+          value: "4.7.4"
         # renovate: datasource=github-releases depName=static-curl packageName=moparisthebest/static-curl
         - name: CURL_VERSION
           value: "8.17.0"
