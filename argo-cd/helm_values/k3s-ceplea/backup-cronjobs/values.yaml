@@ -1,0 +1,131 @@
+.container_image: &container_image
+  repository: ghcr.io/ionutbalutoiu/home-backup
+  pullPolicy: IfNotPresent
+  tag: 1.2.0
+
+controllers:
+  backup-hyper-ryzen:
+    type: cronjob
+    cronjob:
+      timeZone: Etc/GMT+2 # Bucharest Timezone
+      schedule: "0 14 * * 6" # Every Saturday at 14:00
+      backoffLimit: 0
+      successfulJobsHistory: 7
+      failedJobsHistory: 3
+    initContainers:
+      copy-rclone-conf:
+        image:
+          repository: busybox
+          pullPolicy: IfNotPresent
+          tag: 1.37.0
+        command:
+          - cp
+        args:
+          - /secrets/rclone.conf
+          - /root/.config/rclone/rclone.conf
+    containers:
+      home-backup:
+        image: *container_image
+        command:
+          - home-backup
+        args:
+          - -log-level
+          - debug
+          - -config
+          - /configs/$(NODE_NAME).yaml
+        env:
+          RESTIC_HOST: backup-cronjobs
+          RESTIC_PASSWORD_FILE: /secrets/restic-password
+          NODE_NAME:
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+        securityContext:
+          privileged: true
+    pod:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: In
+                    values:
+                      - hyper-ryzen
+
+configMaps:
+  backup-configs:
+    data:
+      hyper-ryzen.yaml: |-
+        backups:
+          ###
+          ### Backup LV - pvc-shared
+          ###
+          - source:
+              type: lvm
+              vg_name: storage-ssd-nvme-raid0
+              lv_name: pvc-shared
+            destination:
+              type: restic
+              repo: rclone:onedrive-iony:restic-backups/k3s-ceplea/hyper-ryzen_lv_pvc-shared
+              keep_last: 4
+          ###
+          ### Backup LV - home
+          ###
+          - source:
+              type: lvm
+              vg_name: ubuntu-vg
+              lv_name: home
+            destination:
+              type: restic
+              repo: rclone:onedrive-iony:restic-backups/k3s-ceplea/hyper-ryzen_lv_home
+              keep_last: 4
+
+persistence:
+  host-root:
+    type: hostPath
+    hostPath: /
+    hostPathType: Directory
+    globalMounts:
+      - path: /host-root
+
+  device-dir:
+    type: hostPath
+    hostPath: /dev
+    hostPathType: Directory
+    globalMounts:
+      - path: /dev
+
+  lib-modules:
+    type: hostPath
+    hostPath: /lib/modules
+    hostPathType: Directory
+    globalMounts:
+      - path: /lib/modules
+
+  scripts:
+    type: configMap
+    identifier: backup-configs
+    globalMounts:
+      - path: /configs
+
+  rclone-conf:
+    type: secret
+    name: backup-rclone-conf
+    defaultMode: 0600
+    globalMounts:
+      - path: /secrets/rclone.conf
+        subPath: rclone.conf
+
+  restic-password:
+    type: secret
+    name: backup-restic-password
+    defaultMode: 0600
+    globalMounts:
+      - path: /secrets/restic-password
+        subPath: restic-password
+
+  rclone-conf-dir:
+    type: emptyDir
+    globalMounts:
+      - path: /root/.config/rclone
