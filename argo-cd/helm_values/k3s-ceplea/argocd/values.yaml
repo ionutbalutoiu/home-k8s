@@ -163,11 +163,11 @@ repoServer:
       command: [sh, -ec]
       env:
         - name: HELM_SECRETS_VERSION
-          value: "4.6.5"
+          value: "4.6.5" # renovate: datasource=github-releases depName=helm-secrets packageName=jkroepke/helm-secrets
         - name: CURL_VERSION
-          value: "8.11.0"
+          value: "8.11.0" # renovate: datasource=github-releases depName=static-curl packageName=moparisthebest/static-curl
         - name: SOPS_VERSION
-          value: "3.10.2"
+          value: "3.10.2" # renovate: datasource=github-releases depName=sops packageName=getsops/sops
       args:
         - |
           mkdir -p /gitops-tools/helm-plugins
