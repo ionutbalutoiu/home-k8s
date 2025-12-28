@@ -33,10 +33,6 @@ applicationSet:
       memory: 48Mi
 
 server:
-  livenessProbe:
-    enabled: true
-  readinessProbe:
-    enabled: true
   ingress:
     enabled: true
     ingressClassName: traefik-internal
@@ -51,10 +47,6 @@ dex:
   enabled: false
 
 repoServer:
-  livenessProbe:
-    enabled: true
-  readinessProbe:
-    enabled: true
   env:
     - name: HELM_PLUGINS
       value: /gitops-tools/helm-plugins/
