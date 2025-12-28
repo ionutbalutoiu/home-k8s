@@ -1,0 +1,41 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: garm
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  sources:
+    - chart: app-template
+      repoURL: https://bjw-s-labs.github.io/helm-charts
+      targetRevision: 4.5.0
+      helm:
+        valueFiles:
+          - $values/argo-cd/helm_values/k3s-ceplea/garm/values.yaml
+    - repoURL: https://github.com/ionutbalutoiu/home-k8s.git
+      path: charts/external-secrets
+      targetRevision: HEAD
+      helm:
+        valueFiles:
+          - $values/argo-cd/helm_values/k3s-ceplea/garm/values_external_secrets.yaml
+    - repoURL: https://github.com/ionutbalutoiu/home-k8s.git
+      targetRevision: HEAD
+      ref: values
+  destination:
+    namespace: garm
+    server: https://kubernetes.default.svc
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      - PruneLast=true
+    automated:
+      prune: true
+      selfHeal: true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
