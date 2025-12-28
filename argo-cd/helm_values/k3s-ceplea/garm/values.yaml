@@ -38,6 +38,36 @@ controllers:
             memory: 256Mi
           limits:
             memory: 256Mi
+  garm-update-pools:
+    type: job
+    annotations:
+      # ArgoCD hook annotations
+      "argocd.argoproj.io/hook": PostSync
+      "argocd.argoproj.io/hook-delete-policy": BeforeHookCreation
+      "argocd.argoproj.io/sync-wave": "9999"
+      # Helm hook annotations
+      "helm.sh/hook": post-install,post-upgrade
+      "helm.sh/hook-delete-policy": before-hook-creation
+      "helm.sh/hook-weight": "9999"
+    containers:
+      main:
+        image:
+          repository: alpine/curl
+          pullPolicy: IfNotPresent
+          tag: 8.17.0
+        env:
+          GARM_K8S_RUNNER_VERSION: 2.329.0-ce65795
+        envFrom:
+          - secretRef:
+              name: garm-secrets
+        command:
+          - /scripts/update-garm-pools.sh
+        resources:
+          requests:
+            cpu: 5m
+            memory: 128Mi
+          limits:
+            memory: 128Mi
 
 service:
   garm:
@@ -72,9 +102,34 @@ rbac:
 configMaps:
   scripts:
     data:
+      update-garm-pools.sh: |
+        #!/bin/sh
+        set -eo pipefail
+
+        if [[ -z "${GARM_K8S_RUNNER_VERSION}" ]]; then
+          echo "GARM_K8S_RUNNER_VERSION is not set. Exiting."
+          exit 1
+        fi
+
+        K8S_POOLS=@(
+          "08d7f1de-f417-49ce-bebc-323f1db41774" # balutoiu/k3s
+          "6f9366a9-5939-4668-beaa-6603cc28c200" # ionutbalutoiu/home-k8s
+        )
+
+        for POOL_ID in ${K8S_POOLS[@]}; do
+          echo "Updating K8s pool ${POOL_ID} to use image: ghcr.io/ionutbalutoiu/garm-k8s-runner:${GARM_K8S_RUNNER_VERSION}"
+          curl -sS \
+            -X PUT \
+            -H "Accept: application/json" \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer $CLI_BEARER_TOKEN" \
+              "https://garm.internal.balutoiu.com/api/v1/pools/${POOL_ID}" \
+              -d "{\"image\":\"ghcr.io/ionutbalutoiu/garm-k8s-runner:${GARM_K8S_RUNNER_VERSION}\"}"
+        done
+
       init-garm.sh: |
         #!/bin/sh
-        set -e
+        set -eo pipefail
 
         CONFIG_TEMPLATE="/config-templates/config-template.toml"
         CONFIG_PATH="/etc/garm/config.toml"
@@ -252,6 +307,9 @@ persistence:
     advancedMounts:
       garm:
         init-garm:
+          - path: /scripts
+      garm-update-pools:
+        main:
           - path: /scripts
 
   config-templates:
