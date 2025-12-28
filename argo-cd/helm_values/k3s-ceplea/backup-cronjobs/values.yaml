@@ -1,3 +1,6 @@
+global:
+  alwaysAppendIdentifierToResourceName: true
+
 controllers:
   backup-hyper-ryzen:
     type: cronjob
