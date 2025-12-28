@@ -1,8 +1,3 @@
-.container_image: &container_image
-  repository: ghcr.io/ionutbalutoiu/home-backup
-  pullPolicy: IfNotPresent
-  tag: 1.2.0
-
 controllers:
   backup-hyper-ryzen:
     type: cronjob
@@ -25,7 +20,10 @@ controllers:
           - /root/.config/rclone/rclone.conf
     containers:
       home-backup:
-        image: *container_image
+        image:
+          repository: ghcr.io/ionutbalutoiu/home-backup
+          pullPolicy: IfNotPresent
+          tag: 1.2.1
         command:
           - home-backup
         args:
