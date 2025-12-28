@@ -55,12 +55,11 @@ controllers:
           repository: alpine/curl
           pullPolicy: IfNotPresent
           tag: 8.17.0
-        env:
-          # renovate: datasource=docker depName=garm-k8s-runner packageName=ghcr.io/ionutbalutoiu/garm-k8s-runner
-          GARM_K8S_RUNNER_IMAGE_TAG: 2.329.0-ce65795
         envFrom:
           - secretRef:
               name: garm-secrets
+          - configMapRef:
+              identifier: vars
         command:
           - /scripts/update-garm-pools.sh
         resources:
@@ -101,6 +100,11 @@ rbac:
         - identifier: garm
 
 configMaps:
+  vars:
+    data:
+      # renovate: datasource=docker depName=garm-k8s-runner packageName=ghcr.io/ionutbalutoiu/garm-k8s-runner
+      GARM_K8S_RUNNER_IMAGE_TAG: 2.329.0-ce65795
+
   scripts:
     data:
       update-garm-pools.sh: |
