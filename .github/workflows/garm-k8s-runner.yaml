@@ -26,7 +26,7 @@ jobs:
           RUNNER_VERSION=$(cat ./images/garm-k8s-runner/Dockerfile | grep -E "FROM.+ghcr.io/actions/actions-runner" | cut -d ':' -f2)
           GIT_SHA="${GITHUB_SHA::7}"
 
-          echo "image_tag=${RUNNER_VERSION}-${GIT_SHA}" >> $GITHUB_OUTPUT
+          echo "image_tag=${RUNNER_VERSION}+${GIT_SHA}" >> $GITHUB_OUTPUT
 
   container-image:
     uses: ionutbalutoiu/gha-utils/.github/workflows/docker-buildx.yaml@main
