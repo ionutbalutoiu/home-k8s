@@ -2,7 +2,8 @@ defaultPodOptions:
   affinity:
     nodeAffinity:
       preferredDuringSchedulingIgnoredDuringExecution:
-        - preference:
+        - weight: 100
+          preference:
             matchExpressions:
               - key: kubernetes.io/hostname
                 operator: In
