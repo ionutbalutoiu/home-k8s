@@ -9,6 +9,10 @@ spec:
       recordType: CNAME
       targets:
         - balutoiu.com
+    - dnsName: "auth.balutoiu.com"
+      recordType: CNAME
+      targets:
+        - balutoiu.com
 ---
 apiVersion: externaldns.k8s.io/v1alpha1
 kind: DNSEndpoint
