@@ -8,6 +8,7 @@ renovate:
       "$schema": "https://docs.renovatebot.com/renovate-schema.json",
       "repositories": [
         "ionutbalutoiu/home-k8s",
+        "ionutbalutoiu/home-backup",
         "balutoiu/k3s"
       ]
     }
