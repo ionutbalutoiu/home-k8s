@@ -38,7 +38,7 @@ controllers:
             memory: 256Mi
           limits:
             memory: 256Mi
-  garm-update-pools:
+  update-pools:
     type: job
     annotations:
       # ArgoCD hook annotations
@@ -309,7 +309,7 @@ persistence:
       garm:
         init-garm:
           - path: /scripts
-      garm-update-pools:
+      update-pools:
         main:
           - path: /scripts
 
