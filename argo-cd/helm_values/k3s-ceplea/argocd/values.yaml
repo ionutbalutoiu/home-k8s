@@ -167,7 +167,7 @@ repoServer:
           value: "4.6.5"
         # renovate: datasource=github-releases depName=static-curl packageName=moparisthebest/static-curl
         - name: CURL_VERSION
-          value: "8.11.0"
+          value: "8.17.0"
         # renovate: datasource=github-releases depName=sops packageName=getsops/sops
         - name: SOPS_VERSION
           value: "3.10.2"
