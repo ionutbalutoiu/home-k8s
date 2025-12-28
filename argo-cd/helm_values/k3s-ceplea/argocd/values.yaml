@@ -76,10 +76,6 @@ applicationSet:
       memory: 100Mi
 
 server:
-  livenessProbe:
-    enabled: true
-  readinessProbe:
-    enabled: true
   metrics:
     enabled: true
     serviceMonitor:
@@ -108,10 +104,6 @@ dex:
       memory: 256Mi
 
 repoServer:
-  livenessProbe:
-    enabled: true
-  readinessProbe:
-    enabled: true
   metrics:
     enabled: true
     serviceMonitor:
