@@ -162,12 +162,15 @@ repoServer:
       imagePullPolicy: IfNotPresent
       command: [sh, -ec]
       env:
+        # renovate: datasource=github-releases depName=helm-secrets packageName=jkroepke/helm-secrets
         - name: HELM_SECRETS_VERSION
-          value: "4.6.5" # renovate: datasource=github-releases depName=helm-secrets packageName=jkroepke/helm-secrets
+          value: "4.6.5"
+        # renovate: datasource=github-releases depName=static-curl packageName=moparisthebest/static-curl
         - name: CURL_VERSION
-          value: "8.11.0" # renovate: datasource=github-releases depName=static-curl packageName=moparisthebest/static-curl
+          value: "8.11.0"
+        # renovate: datasource=github-releases depName=sops packageName=getsops/sops
         - name: SOPS_VERSION
-          value: "3.10.2" # renovate: datasource=github-releases depName=sops packageName=getsops/sops
+          value: "3.10.2"
       args:
         - |
           mkdir -p /gitops-tools/helm-plugins
