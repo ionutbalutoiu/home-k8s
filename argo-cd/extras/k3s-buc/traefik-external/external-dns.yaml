@@ -5,14 +5,10 @@ metadata:
   name: external-buc-balutoiu-com
 spec:
   endpoints:
-    - dnsName: "buc.balutoiu.com"
-      recordType: CNAME
-      targets:
-        - balutoiu-buc.go.ro
     - dnsName: "*.buc.balutoiu.com"
       recordType: CNAME
       targets:
-        - balutoiu-buc.go.ro
+        - buc.balutoiu.com
 ---
 apiVersion: externaldns.k8s.io/v1alpha1
 kind: DNSEndpoint
