@@ -29,6 +29,9 @@ jobs:
 
   container-image:
     uses: ionutbalutoiu/gha-utils/.github/workflows/docker-buildx.yaml@main
+    permissions:
+      contents: read
+      packages: write
     needs: container-image-tag
     with:
       image_name: garm-k8s-runner
