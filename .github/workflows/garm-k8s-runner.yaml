@@ -5,6 +5,7 @@ on:
     branches:
       - main
     paths:
+      - .github/workflows/garm-k8s-runner.yaml
       - images/garm-k8s-runner/**
 
 jobs:
