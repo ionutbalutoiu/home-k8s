@@ -1,0 +1,83 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: immich-postgres
+spec:
+  imageName: ghcr.io/tensorchord/cloudnative-vectorchord:16.9-0.4.3@sha256:bdb8d8829bd68c9204628cde5c495db9db0d2b45e958ddd17de1703338a3b98b
+  instances: 2
+
+  plugins:
+    - name: barman-cloud.cloudnative-pg.io
+      isWALArchiver: true
+      parameters:
+        barmanObjectName: k3s-buc-s3
+
+  postgresql:
+    shared_preload_libraries:
+      - "vchord.so"
+
+  managed:
+    roles:
+      - name: immich
+        superuser: true
+        login: true
+
+  bootstrap:
+    initdb:
+      database: immich
+      owner: immich
+
+  storage:
+    size: 4Gi
+    storageClass: longhorn-2r
+---
+apiVersion: barmancloud.cnpg.io/v1
+kind: ObjectStore
+metadata:
+  name: k3s-buc-s3
+spec:
+  retentionPolicy: 7d
+  configuration:
+    destinationPath: s3://immich-db-backup/
+    endpointURL: https://s3.internal.buc.balutoiu.com
+    s3Credentials:
+      accessKeyId:
+        name: immich-db-backup-s3-creds
+        key: ACCESS_KEY_ID
+      secretAccessKey:
+        name: immich-db-backup-s3-creds
+        key: SECRET_ACCESS_KEY
+      region:
+        name: immich-db-backup-s3-creds
+        key: REGION
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: k3s-buc-s3-postgres-backup
+spec:
+  cluster:
+    name: immich-postgres
+  schedule: '0 30 1 * * *' # Every day at 01:30 UTC
+  backupOwnerReference: self
+  method: plugin
+  pluginConfiguration:
+    name: barman-cloud.cloudnative-pg.io
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: immich-db
+spec:
+  name: immich
+  owner: immich
+  cluster:
+    name: immich-postgres
+  extensions:
+    - name: vector
+      ensure: present
+    - name: vchord
+      ensure: present
+      version: 0.4.3
+    - name: earthdistance
+      ensure: present

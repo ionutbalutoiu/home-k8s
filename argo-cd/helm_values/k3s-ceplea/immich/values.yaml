@@ -1,0 +1,123 @@
+valkey:
+  enabled: true
+  global:
+    annotations:
+      argocd.argoproj.io/sync-wave: "-1"
+  persistence:
+    data:
+      size: 1Gi
+      type: persistentVolumeClaim
+      storageClass: longhorn-2r
+  controllers:
+    main:
+      containers:
+        main:
+          resources:
+            requests:
+              cpu: 8m
+              memory: 50Mi
+            limits:
+              memory: 50Mi
+
+immich:
+  persistence:
+    library:
+      existingClaim: pvc-immich
+
+server:
+  defaultPodOptions:
+    affinity: &affinity
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+            - matchExpressions:
+                - key: kubernetes.io/hostname
+                  operator: In
+                  values:
+                    - hyper-ryzen
+                    - beelink-s12-pro-01
+                    - beelink-s12-pro-02
+                    - beelink-s12-pro-03
+        preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+                - key: kubernetes.io/hostname
+                  operator: In
+                  values:
+                    - hyper-ryzen
+          - weight: 90
+            preference:
+              matchExpressions:
+                - key: kubernetes.io/hostname
+                  operator: In
+                  values:
+                    - beelink-s12-pro-01
+                    - beelink-s12-pro-02
+                    - beelink-s12-pro-03
+  controllers:
+    main:
+      strategy: Recreate
+      containers:
+        main:
+          image:
+            repository: ghcr.io/immich-app/immich-server
+            tag: v2.4.1
+          env: &database_env
+            DB_DATABASE_NAME:
+              valueFrom:
+                secretKeyRef:
+                  name: immich-postgres-app
+                  key: dbname
+            DB_USERNAME:
+              valueFrom:
+                secretKeyRef:
+                  name: immich-postgres-app
+                  key: username
+            DB_PASSWORD:
+              valueFrom:
+                secretKeyRef:
+                  name: immich-postgres-app
+                  key: password
+            DB_HOSTNAME: immich-postgres-rw.immich.svc
+          resources:
+            requests:
+              cpu: 1252m
+              memory: 16Gi
+            limits:
+              cpu: 4000m
+              memory: 16Gi
+  route:
+    main:
+      parentRefs:
+        - name: traefik-gateway
+          namespace: traefik-external
+      hostnames:
+        - immich.balutoiu.com
+      rules:
+        - name: server
+          matches:
+            - path:
+                type: PathPrefix
+                value: /
+          backendRefs:
+            - identifier: main
+
+machine-learning:
+  defaultPodOptions:
+    affinity: *affinity
+  controllers:
+    main:
+      containers:
+        main:
+          env: *database_env
+          image:
+            repository: ghcr.io/immich-app/immich-machine-learning
+            tag: v2.4.1
+          resources:
+            requests:
+              cpu: 2000m
+              memory: 8Gi
+            limits:
+              cpu: 2000m
+              memory: 8Gi
