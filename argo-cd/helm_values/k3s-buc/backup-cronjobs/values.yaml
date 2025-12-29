@@ -1,0 +1,186 @@
+global:
+  alwaysAppendIdentifierToResourceName: true
+
+controllers:
+  backup-sea-pi:
+    forceRename: backup-sea-pi
+    type: cronjob
+    cronjob:
+      timeZone: Etc/GMT+2 # Bucharest Timezone
+      schedule: "0 14 * * 6" # Every Saturday at 14:00
+      backoffLimit: 0
+      successfulJobsHistory: 7
+      failedJobsHistory: 3
+    initContainers:
+      copy-rclone-conf:
+        image:
+          repository: busybox
+          pullPolicy: IfNotPresent
+          tag: 1.37.0
+        command:
+          - cp
+        args:
+          - /secrets/rclone.conf
+          - /root/.config/rclone/rclone.conf
+    containers:
+      home-backup:
+        image:
+          repository: ghcr.io/ionutbalutoiu/home-backup
+          pullPolicy: IfNotPresent
+          tag: 1.2.1
+        command:
+          - home-backup
+        args:
+          - -log-level
+          - debug
+          - -config
+          - /configs/$(NODE_NAME).yaml
+        env:
+          RESTIC_HOST: backup-cronjobs
+          RESTIC_PASSWORD_FILE: /secrets/restic-password
+          NODE_NAME:
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+        securityContext:
+          privileged: true
+    pod:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: In
+                    values:
+                      - sea-pi
+
+configMaps:
+  backup-configs:
+    forceRename: backup-configs
+    data:
+      sea-pi.yaml: |-
+        backups:
+          ###
+          ### Backup LV - k3s-server
+          ###
+          - source:
+              type: lvm
+              vg_name: k8s-vg
+              lv_name: k3s-server
+            destination:
+              type: restic
+              repo: rclone:onedrive-iony:restic-backups/k3s-buc/sea-pi_lv_k3s-server
+              keep_last: 4
+          ###
+          ### Backup PVC - wireguard/wireguard-config
+          ###
+          - source:
+              type: lvm
+              vg_name: k8s-vg
+              lv_name: pvc-17d790db-0636-48c4-b0f5-4d120bf6ed64
+            destination:
+              type: restic
+              repo: rclone:onedrive-iony:restic-backups/k3s-buc/sea-pi_pvc_wireguard-config
+              keep_last: 4
+          ###
+          ### Backup PVC - garage/meta-garage-0
+          ###
+          - source:
+              type: lvm
+              vg_name: k8s-vg
+              lv_name: pvc-8918ae6d-63ab-45ba-9df8-4205e70cbb3c
+            destination:
+              type: restic
+              repo: rclone:onedrive-iony:restic-backups/k3s-buc/sea-pi_pvc_meta-garage-0
+              keep_last: 4
+          ###
+          ### Backup PVC - garage/data-garage-0
+          ###
+          - source:
+              type: lvm
+              vg_name: k8s-vg
+              lv_name: pvc-44dbc54f-ac36-4c3f-b703-ee68c173f6ab
+            destination:
+              type: restic
+              repo: rclone:onedrive-iony:restic-backups/k3s-buc/sea-pi_pvc_data-garage-0
+              keep_last: 4
+          ###
+          ### Backup directory - /home
+          ###
+          - source:
+              type: directory
+              path: /host-root/home
+            destination:
+              type: restic
+              repo: rclone:onedrive-iony:restic-backups/k3s-buc/sea-pi_dir_home
+              keep_last: 4
+          ###
+          ### Backup directory - /storage/www
+          ###
+          - source:
+              type: directory
+              path: /host-root/storage/www
+            destination:
+              type: restic
+              repo: rclone:onedrive-iony:restic-backups/k3s-buc/sea-pi_dir_storage-www
+              keep_last: 4
+          ###
+          ### Backup directory - /storage/backup/archive (zfs-data-backups)
+          ###
+          - source:
+              type: directory
+              path: /host-root/storage/backup/archive
+            destination:
+              type: restic
+              repo: rclone:onedrive-eli:restic-backups/k3s-buc/sea-pi_dir_storage-zfs-data-backups
+              keep_last: 4
+
+persistence:
+  host-root:
+    type: hostPath
+    hostPath: /
+    hostPathType: Directory
+    globalMounts:
+      - path: /host-root
+
+  device-dir:
+    type: hostPath
+    hostPath: /dev
+    hostPathType: Directory
+    globalMounts:
+      - path: /dev
+
+  lib-modules:
+    type: hostPath
+    hostPath: /lib/modules
+    hostPathType: Directory
+    globalMounts:
+      - path: /lib/modules
+
+  scripts:
+    type: configMap
+    identifier: backup-configs
+    globalMounts:
+      - path: /configs
+
+  rclone-conf:
+    type: secret
+    name: backup-rclone-conf
+    defaultMode: 0600
+    globalMounts:
+      - path: /secrets/rclone.conf
+        subPath: rclone.conf
+
+  restic-password:
+    type: secret
+    name: backup-restic-password
+    defaultMode: 0600
+    globalMounts:
+      - path: /secrets/restic-password
+        subPath: restic-password
+
+  rclone-conf-dir:
+    type: emptyDir
+    globalMounts:
+      - path: /root/.config/rclone
