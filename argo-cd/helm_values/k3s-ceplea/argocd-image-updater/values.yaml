@@ -1,0 +1,19 @@
+config:
+  gitCommitUser: balutoiu-bot
+  gitCommitMail: balutoiubot@gmail.com
+  gitCommitTemplate: |
+    build: automatic update of {{ .AppName }}
+
+    {{ range .AppChanges -}}
+    * updates image {{ .Image }} tag `{{ .OldTag }}` to `{{ .NewTag }}`
+    {{ end -}}
+
+resources:
+  requests:
+    memory: 64Mi
+    cpu: 10m
+  limits:
+    memory: 64Mi
+
+ingress:
+  enabled: false
