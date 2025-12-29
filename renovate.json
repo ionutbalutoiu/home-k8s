@@ -11,6 +11,19 @@
       "/argo-cd/.+\\.yaml$/"
     ]
   },
+  "packageRules": [
+    {
+      "matchDatasources": [
+        "docker"
+      ],
+      "matchPackageNames": [
+        "ghcr.io/ionutbalutoiu/openvpn",
+        "linuxserver/openssh-server",
+        "linuxserver/wireguard"
+      ],
+      "versioning": "loose"
+    }
+  ],
   "customManagers": [
     {
       "customType": "regex",
