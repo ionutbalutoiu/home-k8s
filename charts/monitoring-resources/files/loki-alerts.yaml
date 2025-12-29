@@ -1,0 +1,55 @@
+groups:
+  - name: loki_alerts
+    rules:
+      - alert: LokiCompactorHasNotSuccessfullyRunCompaction
+        annotations:
+          description: |
+            {{ $labels.cluster }} {{ $labels.namespace }} has not run compaction in the last 3 hours since the last compaction. This may indicate a problem with the compactor.
+          summary: Loki compaction has not run in the last 3 hours since the last compaction.
+        expr: |
+          # The "last successful run" metric is updated even if the compactor owns no tenants,
+          # so this alert correctly doesn't fire if compactor has nothing to do.
+          min (
+            time() - (loki_boltdb_shipper_compact_tables_operation_last_successful_run_timestamp_seconds{} > 0)
+          )
+          by (cluster, namespace)
+          > 60 * 60 * 3
+        for: 1h
+        labels:
+          severity: critical
+      - alert: LokiCompactorHasNotSuccessfullyRunCompaction
+        annotations:
+          description: |
+            {{ $labels.cluster }} {{ $labels.namespace }} has not run compaction in the last 3h since startup. This may indicate a problem with the compactor.
+          summary: Loki compaction has not run in the last 3h since startup.
+        expr: |
+          # The "last successful run" metric is updated even if the compactor owns no tenants,
+          # so this alert correctly doesn't fire if compactor has nothing to do.
+          max(
+            max_over_time(
+              loki_boltdb_shipper_compact_tables_operation_last_successful_run_timestamp_seconds{}[3h]
+            )
+          ) by (cluster, namespace)
+          == 0
+        for: 1h
+        labels:
+          severity: critical
+      - alert: LokiProcessTooManyRestarts
+        expr: changes(process_start_time_seconds{job=~".*loki.*"}[15m]) > 2
+        annotations:
+          description: |
+            A Loki process has restarted too many times. The pod `{{ $labels.pod }}` experienced `{{ $value }}` restarts.
+          summary: A Loki process has restarted multiple times in the last 15 minutes.
+        for: 0m
+        labels:
+          severity: warning
+      - alert: LokiIngesterErrors
+        expr: |
+          sum by (instance) (rate(loki_write_dropped_entries_total[5m])) > 0
+        annotations:
+          description: |
+            Log entries were dropped because they could not be sent to the ingester after all retry attempts. Affected instance: `{{ $labels.instance }}`.
+          summary: Loki ingester is experiencing errors.
+        for: 5m
+        labels:
+          severity: critical

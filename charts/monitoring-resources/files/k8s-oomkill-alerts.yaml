@@ -1,0 +1,12 @@
+groups:
+  - name: k8s-oomkill
+    rules:
+      - alert: KubernetesContainerOOMKill
+        expr: (kube_pod_container_status_restarts_total - kube_pod_container_status_restarts_total offset 10m >= 1) and ignoring (reason) min_over_time(kube_pod_container_status_last_terminated_reason{reason="OOMKilled"}[10m]) == 1
+        for: 0m
+        labels:
+          severity: warning
+        annotations:
+          summary: Kubernetes Container OOMKill detected
+          description: |-
+            Container `{{ $labels.container }}` in pod `{{ $labels.namespace }}/{{ $labels.pod }}` has been OOMKilled `{{ $value }}` times in the last 10 minutes.

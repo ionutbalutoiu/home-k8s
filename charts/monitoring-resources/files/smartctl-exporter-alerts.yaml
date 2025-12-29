@@ -1,0 +1,53 @@
+groups:
+  - name: SmartctlExporter
+
+    rules:
+      - alert: SmartDeviceTemperatureWarning
+        expr: "smartctl_device_temperature > 60"
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: Smart device temperature warning
+          description: >-
+            Device `{{ $labels.device }}` on instance `{{ $labels.instance }}` has a temperature of `{{ $value }}`.
+
+      - alert: SmartDeviceTemperatureCritical
+        expr: "smartctl_device_temperature > 80"
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: Smart device temperature critical
+          description: >-
+            Device `{{ $labels.device }}` on instance `{{ $labels.instance }}` has a temperature of `{{ $value }}`.
+
+      - alert: SmartCriticalWarning
+        expr: "smartctl_device_critical_warning > 0"
+        for: 15m
+        labels:
+          severity: critical
+        annotations:
+          summary: Smart critical warning
+          description: >-
+            Device `{{ $labels.device }}` on instance `{{ $labels.instance }}` has critical controller warnings.
+
+      - alert: SmartMediaErrors
+        expr: "smartctl_device_media_errors > 0"
+        for: 15m
+        labels:
+          severity: critical
+        annotations:
+          summary: Smart media errors
+          description: >-
+            Device `{{ $labels.device }}` on instance `{{ $labels.instance }}` has media errors.
+
+      - alert: SmartNvmeWearoutIndicator
+        expr: 'smartctl_device_available_spare{device=~"nvme.*"} < smartctl_device_available_spare_threshold{device=~"nvme.*"}'
+        for: 15m
+        labels:
+          severity: critical
+        annotations:
+          summary: Smart NVME Wearout Indicator
+          description: >-
+            NVMe device `{{ $labels.device }}` on instance `{{ $labels.instance }}` is experiencing wear and may require attention.

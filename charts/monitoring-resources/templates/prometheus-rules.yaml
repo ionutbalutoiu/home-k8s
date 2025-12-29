@@ -1,0 +1,12 @@
+{{- range $path, $_ := .Files.Glob "files/**.yaml" }}
+{{- $name := (split "." (base $path))._0 }}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ include "monitoring-resources.fullname" $ }}-{{ $name }}
+  labels:
+    {{- include "monitoring-resources.labels" $ | nindent 4 }}
+spec:
+  {{- $path | $.Files.Get | nindent 2 }}
+{{- end }}

@@ -1,0 +1,15 @@
+groups:
+  - name: k8s-generic-alerts
+    rules:
+      - alert: PodHighRestartCount
+        expr: sum by (namespace, pod) (increase(kube_pod_container_status_restarts_total[10m])) > 5
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: Pod restarted too many times in the last 10 minutes.
+          description: >-
+            Pod `{{ $labels.namespace }}/{{ $labels.pod }}` has experienced more
+            than 5 container restarts in the last 10 minutes (current value: `{{ $value }}`).
+            Investigate container crashes, OOMs, or probe failures — check container
+            logs, events, and node status.
