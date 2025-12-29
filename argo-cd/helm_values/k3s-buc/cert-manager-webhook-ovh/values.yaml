@@ -1,0 +1,30 @@
+configVersion: 0.0.2
+
+groupName: acme.balutoiu.com
+
+issuers:
+  - name: le-prod
+    create: true
+    kind: ClusterIssuer
+    cnameStrategy: None
+    acmeServerUrl: https://acme-v02.api.letsencrypt.org/directory
+    email: ionutbalutoiu@gmail.com
+    ovhEndpointName: ovh-eu
+    ovhAuthenticationMethod: application
+    ovhAuthenticationRef:
+      applicationKeyRef:
+        name: cert-manager-webhook-ovh-app-creds
+        key: applicationKey
+      applicationSecretRef:
+        name: cert-manager-webhook-ovh-app-creds
+        key: applicationSecret
+      applicationConsumerKeyRef:
+        name: cert-manager-webhook-ovh-app-creds
+        key: consumerKey
+
+resources:
+  requests:
+    cpu: 3m
+    memory: 51Mi
+  limits:
+    memory: 51Mi
