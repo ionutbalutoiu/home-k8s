@@ -1,0 +1,113 @@
+global:
+  alwaysAppendIdentifierToResourceName: true
+
+controllers:
+  wg-proxy:
+    strategy: Recreate
+    containers:
+      main:
+        image: &wg_image
+          repository: linuxserver/wireguard
+          pullPolicy: IfNotPresent
+          tag: 1.0.20250521
+        env:
+          TZ: Europe/Bucharest
+          PUID: 0
+          PGID: 0
+        securityContext:
+          capabilities:
+            add:
+              - NET_ADMIN
+        probes:
+          readiness: &healthcheck_probe_spec
+            enabled: true
+            custom: true
+            spec:
+              initialDelaySeconds: 5
+              exec:
+                command:
+                  - /bin/ping
+                  - -c
+                  - "1"
+                  - "192.168.99.1"
+          liveness: *healthcheck_probe_spec
+        resources:
+          requests:
+            cpu: 3m
+            memory: 64Mi
+          limits:
+            memory: 64Mi
+    initContainers:
+      setup-dnat:
+        image: *wg_image
+        command:
+          - /bin/sh
+        args:
+          - /wg-proxy-dnat/setup.sh
+        securityContext:
+          privileged: true
+        resources:
+          requests:
+            cpu: 1m
+            memory: 64Mi
+          limits:
+            memory: 64Mi
+
+service:
+  wg-proxy:
+    controller: wg-proxy
+    type: LoadBalancer
+    annotations:
+      external-dns.alpha.kubernetes.io/hostname: wg-proxy.internal.balutoiu.com
+    ports:
+      fl-pi-ssh:
+        protocol: TCP
+        port: 2201
+
+configMaps:
+  wg-proxy-dnat:
+    data:
+      setup.sh: |
+        #!/bin/sh
+        set -e
+
+        apk add -q --no-cache iptables yq
+
+        echo "Setting up DNAT iptables rules..."
+        DEFAULT_IFACE=$(ip route show default | awk '/default/ {print $5}')
+        for PORT_FORWARD in $(cat /wg-proxy-dnat/config.yaml | yq '.[] | "\(.remote_ip)|\(.remote_port)|\(.local_port)|\(.protocol)"'); do
+            REMOTE_IP=$(echo $PORT_FORWARD | cut -d '|' -f 1)
+            REMOTE_PORT=$(echo $PORT_FORWARD | cut -d '|' -f 2)
+            LOCAL_PORT=$(echo $PORT_FORWARD | cut -d '|' -f 3)
+            PROTOCOL=$(echo $PORT_FORWARD | cut -d '|' -f 4)
+
+            echo "Port forwarding from remote $REMOTE_IP:$REMOTE_PORT to local 0.0.0.0:$LOCAL_PORT using protocol $PROTOCOL"
+            iptables -t nat -A PREROUTING -i $DEFAULT_IFACE -p $PROTOCOL --dport $LOCAL_PORT -j DNAT --to-destination ${REMOTE_IP}:${REMOTE_PORT}
+            iptables -t nat -A POSTROUTING -p $PROTOCOL -d $REMOTE_IP --dport $REMOTE_PORT -j MASQUERADE
+        done
+
+      config.yaml: |
+        - remote_ip: 192.168.99.2
+          remote_port: 22
+          local_port: 2201
+          protocol: tcp
+
+persistence:
+  wg-proxy-peer-conf:
+    type: secret
+    name: wg-proxy-peer-conf
+    defaultMode: 0600
+    advancedMounts:
+      wg-proxy:
+        main:
+          - path: /config/wg_confs/wg0.conf
+            subPath: peer_CepleaWGProxy.conf
+            readOnly: true
+
+  wg-proxy-dnat:
+    type: configMap
+    identifier: wg-proxy-dnat
+    advancedMounts:
+      wg-proxy:
+        setup-dnat:
+          - path: /wg-proxy-dnat
