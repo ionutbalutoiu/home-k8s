@@ -14,13 +14,13 @@ spec:
       helm:
         valueFiles:
           - $values/argo-cd/helm_values/k3s-buc/backup-cronjobs/values.yaml
-    - repoURL: git@github.com:balutoiu/k3s.git
+    - repoURL: https://github.com/ionutbalutoiu/home-k8s.git
       path: charts/external-secrets
       targetRevision: HEAD
       helm:
         valueFiles:
           - $values/argo-cd/helm_values/k3s-buc/backup-cronjobs/values_external_secrets.yaml
-    - repoURL: git@github.com:balutoiu/k3s.git
+    - repoURL: https://github.com/ionutbalutoiu/home-k8s.git
       targetRevision: HEAD
       ref: values
   destination:
