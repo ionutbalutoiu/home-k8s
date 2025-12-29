@@ -1,0 +1,36 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cloudnative-pg-plugin-barman-cloud
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  sources:
+    - chart: plugin-barman-cloud
+      repoURL: https://cloudnative-pg.github.io/charts
+      targetRevision: 0.3.1
+      helm:
+        valueFiles:
+          - $values/argo-cd/helm_values/k3s-ceplea/cloudnative-pg-plugin-barman-cloud/values.yaml
+    - repoURL: https://github.com/ionutbalutoiu/home-k8s.git
+      targetRevision: HEAD
+      ref: values
+  destination:
+    namespace: cnpg-system
+    server: https://kubernetes.default.svc
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      - PruneLast=true
+      - ServerSideApply=true
+    automated:
+      prune: true
+      selfHeal: true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m

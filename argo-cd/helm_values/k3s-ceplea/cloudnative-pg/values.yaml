@@ -1,0 +1,13 @@
+monitoring:
+  podMonitorEnabled: true
+  grafanaDashboard:
+    create: true
+    annotations:
+      grafana_dashboards_folder: CloudNativePG
+
+resources:
+  requests:
+    cpu: 4m
+    memory: 125Mi
+  limits:
+    memory: 125Mi
