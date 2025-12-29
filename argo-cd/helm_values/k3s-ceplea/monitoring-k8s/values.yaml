@@ -1,0 +1,157 @@
+cluster:
+  name: k3s-ceplea
+
+destinations:
+  - name: Prometheus
+    type: prometheus
+    url: http://monitoring-mimir-gateway.monitoring-mimir.svc:80/api/v1/push
+    extraHeaders:
+      X-Scope-OrgID: "k3s-ceplea"
+  - name: Loki
+    type: loki
+    url: http://monitoring-loki-gateway.monitoring-loki.svc/loki/api/v1/push
+    extraHeaders:
+      X-Scope-OrgID: "k3s-ceplea"
+
+clusterMetrics:
+  enabled: true
+  windows-exporter:
+    enabled: false
+    deploy: false
+  node-exporter:
+    resources:
+      requests:
+        cpu: 4m
+        memory: 50Mi
+      limits:
+        memory: 50Mi
+    metricsTuning:
+      useDefaultAllowList: false
+      includeMetrics:
+        - ".*" # Include all metrics
+    extraArgs:
+      - --collector.filesystem.mount-points-exclude=^/(dev|proc|run/credentials/.+|sys|var/lib/docker/.+|var/lib/containers/storage/.+|var/lib/kubelet/.+)($|/)
+  kubelet:
+    metricsTuning:
+      useDefaultAllowList: false
+      includeMetrics:
+        - ".*" # Include all metrics
+  kube-state-metrics:
+    resources:
+      requests:
+        cpu: 5m
+        memory: 68Mi
+      limits:
+        memory: 68Mi
+    metricsTuning:
+      useDefaultAllowList: false
+      includeMetrics:
+        - ".*" # Include all metrics
+  cadvisor:
+    metricsTuning:
+      includeMetrics:
+        - machine_cpu_cores
+
+podLogs:
+  enabled: true
+
+clusterEvents:
+  enabled: true
+
+annotationAutodiscovery:
+  enabled: true
+
+prometheusOperatorObjects:
+  enabled: true
+
+alloy-metrics:
+  enabled: true
+  alloy:
+    resources:
+      requests:
+        cpu: 68m
+        memory: 2472Mi
+      limits:
+        memory: 2472Mi
+  configReloader:
+    resources:
+      requests:
+        cpu: 1m
+        memory: 50Mi
+      limits:
+        memory: 50Mi
+
+alloy-singleton:
+  enabled: true
+  extraConfig: |
+    //
+    // Mimir rules are saved by default in the "k3s-ceplea" Mimir tenant
+    //
+    mimir.rules.kubernetes "default_rules" {
+      address                = "http://monitoring-mimir-gateway.monitoring-mimir.svc:80"
+      mimir_namespace_prefix = "default"
+      tenant_id              = "k3s-ceplea"
+
+      rule_selector {
+        match_expression {
+          key      = "loki"
+          operator = "DoesNotExist"
+        }
+      }
+    }
+
+    //
+    // Loki rules are saved by default in the "k3s-ceplea" Mimir tenant
+    //
+    loki.rules.kubernetes "default_rules" {
+      address               = "http://monitoring-loki-gateway.monitoring-loki.svc"
+      loki_namespace_prefix = "default"
+      tenant_id             = "k3s-ceplea"
+
+      rule_selector {
+        match_expression {
+          key      = "loki"
+          operator = "In"
+          values   = ["1"]
+        }
+      }
+    }
+  alloy:
+    resources:
+      requests:
+        cpu: 19m
+        memory: 151Mi
+      limits:
+        memory: 151Mi
+  configReloader:
+    resources:
+      requests:
+        cpu: 1m
+        memory: 50Mi
+      limits:
+        memory: 50Mi
+
+alloy-logs:
+  enabled: true
+  alloy:
+    resources:
+      requests:
+        cpu: 38m
+        memory: 358Mi
+      limits:
+        memory: 358Mi
+  configReloader:
+    resources:
+      requests:
+        cpu: 1m
+        memory: 50Mi
+      limits:
+        memory: 50Mi
+
+alloy-operator:
+  resources:
+    requests:
+      cpu: 27m
+      memory: 154Mi
+    limits:
+      memory: 154Mi

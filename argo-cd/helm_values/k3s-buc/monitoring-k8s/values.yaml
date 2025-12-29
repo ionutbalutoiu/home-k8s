@@ -1,0 +1,133 @@
+cluster:
+  name: k3s-buc
+
+destinations:
+  - name: Prometheus
+    type: prometheus
+    url: https://mimir.internal.balutoiu.com/api/v1/push
+    extraHeaders:
+      X-Scope-OrgID: "k3s-buc"
+  - name: Loki
+    type: loki
+    url: https://loki.internal.balutoiu.com/loki/api/v1/push
+    extraHeaders:
+      X-Scope-OrgID: "k3s-buc"
+
+clusterMetrics:
+  enabled: true
+  windows-exporter:
+    enabled: false
+    deploy: false
+  node-exporter:
+    resources:
+      requests:
+        cpu: 2m
+        memory: 32Mi
+      limits:
+        memory: 32Mi
+    metricsTuning:
+      useDefaultAllowList: false
+      includeMetrics:
+        - ".*" # Include all metrics
+    extraArgs:
+      - --collector.filesystem.mount-points-exclude=^/(dev|proc|run/credentials/.+|sys|var/lib/docker/.+|var/lib/containers/storage/.+|var/lib/kubelet/.+)($|/)
+  kubelet:
+    metricsTuning:
+      useDefaultAllowList: false
+      includeMetrics:
+        - ".*" # Include all metrics
+  kube-state-metrics:
+    resources:
+      requests:
+        cpu: 1m
+        memory: 50Mi
+      limits:
+        memory: 50Mi
+    metricsTuning:
+      useDefaultAllowList: false
+      includeMetrics:
+        - ".*" # Include all metrics
+  cadvisor:
+    metricsTuning:
+      includeMetrics:
+        - machine_cpu_cores
+
+podLogs:
+  enabled: true
+
+clusterEvents:
+  enabled: true
+
+annotationAutodiscovery:
+  enabled: true
+
+prometheusOperatorObjects:
+  enabled: true
+
+alloy-metrics:
+  enabled: true
+  alloy:
+    resources:
+      requests:
+        cpu: 20m
+        memory: 1Gi
+      limits:
+        memory: 1Gi
+  configReloader:
+    resources:
+      requests:
+        cpu: 1m
+        memory: 32Mi
+      limits:
+        memory: 32Mi
+
+alloy-singleton:
+  enabled: true
+  extraConfig: |
+    //
+    // Mimir rules are saved by default in the "k3s-buc" Mimir tenant
+    //
+    mimir.rules.kubernetes "default" {
+      address                = "https://mimir.internal.balutoiu.com"
+      mimir_namespace_prefix = "k3s-buc"
+      tenant_id              = "k3s-buc"
+    }
+  alloy:
+    resources:
+      requests:
+        cpu: 3m
+        memory: 128Mi
+      limits:
+        memory: 128Mi
+  configReloader:
+    resources:
+      requests:
+        cpu: 1m
+        memory: 32Mi
+      limits:
+        memory: 32Mi
+
+alloy-logs:
+  enabled: true
+  alloy:
+    resources:
+      requests:
+        cpu: 13m
+        memory: 150Mi
+      limits:
+        memory: 150Mi
+  configReloader:
+    resources:
+      requests:
+        cpu: 1m
+        memory: 32Mi
+      limits:
+        memory: 32Mi
+
+alloy-operator:
+  resources:
+    requests:
+      cpu: 30m
+      memory: 96Mi
+    limits:
+      memory: 96Mi

@@ -1,0 +1,35 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: monitoring-k8s
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  sources:
+    - chart: k8s-monitoring
+      repoURL: https://grafana.github.io/helm-charts
+      targetRevision: 3.7.1
+      helm:
+        valueFiles:
+          - $values/argo-cd/helm_values/k3s-buc/monitoring-k8s/values.yaml
+    - repoURL: https://github.com/ionutbalutoiu/home-k8s.git
+      targetRevision: HEAD
+      ref: values
+  destination:
+    namespace: monitoring-k8s
+    server: https://kubernetes.default.svc
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      - PruneLast=true
+    automated:
+      prune: true
+      selfHeal: true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
