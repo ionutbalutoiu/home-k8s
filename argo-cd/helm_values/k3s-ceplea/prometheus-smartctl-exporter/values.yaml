@@ -1,0 +1,21 @@
+config:
+  device_include: ^ata-.*|nvme.*$
+
+serviceMonitor:
+  enabled: true
+  relabelings:
+    - sourceLabels: [__meta_kubernetes_pod_node_name]
+      targetLabel: instance
+
+extraArgs:
+  smartctl.scan-device-type: by-id
+
+prometheusRules:
+  enabled: true
+
+resources:
+  requests:
+    cpu: 8m
+    memory: 50Mi
+  limits:
+    memory: 50Mi

@@ -1,0 +1,45 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: prometheus-smartctl-exporter
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  sources:
+    - chart: prometheus-smartctl-exporter
+      repoURL: https://prometheus-community.github.io/helm-charts
+      targetRevision: 0.16.0
+      helm:
+        valueFiles:
+          - $values/argo-cd/helm_values/k3s-ceplea/prometheus-smartctl-exporter/values.yaml
+    - repoURL: https://github.com/ionutbalutoiu/home-k8s.git
+      targetRevision: HEAD
+      ref: values
+  destination:
+    namespace: prometheus-smartctl-exporter
+    server: https://kubernetes.default.svc
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      - PruneLast=true
+    automated:
+      prune: true
+      selfHeal: true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+  # NOTE: Ignore the /dev volumeMount override until this issue is resolved upstream.
+  # The host "/dev" volume must be mounted at /dev inside the container for smartctl to work correctly
+  # with the "--smartctl.scan-device-type=by-id" option (which runs "smartctl --scan --json --device by-id").
+  # The upstream chart currently mounts the host "/dev" volume as "/hostdev" inside the container instead.
+  ignoreDifferences:
+    - group: apps
+      kind: DaemonSet
+      name: prometheus-smartctl-exporter-0
+      jsonPointers:
+        - /spec/template/spec/containers/0/volumeMounts
