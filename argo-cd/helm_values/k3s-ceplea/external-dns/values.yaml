@@ -1,0 +1,40 @@
+provider:
+  name: ovh
+policy: sync
+interval: 1m
+sources:
+  - service
+  - crd
+
+registry: txt
+txtOwnerId: k3s-ceplea
+txtPrefix: k3s-ceplea-
+domainFilters:
+  - balutoiu.com
+
+env:
+  - name: OVH_APPLICATION_KEY
+    valueFrom:
+      secretKeyRef:
+        name: external-dns-ovh-app-creds
+        key: OVH_APPLICATION_KEY
+  - name: OVH_APPLICATION_SECRET
+    valueFrom:
+      secretKeyRef:
+        name: external-dns-ovh-app-creds
+        key: OVH_APPLICATION_SECRET
+  - name: OVH_CONSUMER_KEY
+    valueFrom:
+      secretKeyRef:
+        name: external-dns-ovh-app-creds
+        key: OVH_CONSUMER_KEY
+
+extraArgs:
+  - --txt-wildcard-replacement=asterisk
+
+resources:
+  requests:
+    cpu: 2m
+    memory: 132Mi
+  limits:
+    memory: 132Mi
