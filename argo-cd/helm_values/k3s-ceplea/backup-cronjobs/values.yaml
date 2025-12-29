@@ -2,7 +2,7 @@ global:
   alwaysAppendIdentifierToResourceName: true
 
 controllers:
-  backup-hyper-ryzen:
+  hyper-ryzen:
     type: cronjob
     cronjob:
       timeZone: Etc/GMT+2 # Bucharest Timezone
@@ -55,7 +55,7 @@ controllers:
                       - hyper-ryzen
 
 configMaps:
-  backup-configs:
+  configs:
     data:
       hyper-ryzen.yaml: |-
         backups:
