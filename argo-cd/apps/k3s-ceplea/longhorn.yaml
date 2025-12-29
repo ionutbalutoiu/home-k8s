@@ -1,0 +1,51 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: longhorn
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  sources:
+    - chart: longhorn
+      repoURL: https://charts.longhorn.io
+      targetRevision: 1.10.1
+      helm:
+        valueFiles:
+          - $values/argo-cd/helm_values/k3s-ceplea/longhorn/values.yaml
+    - repoURL: git@github.com:balutoiu/k3s.git
+      path: charts/external-secrets
+      targetRevision: HEAD
+      helm:
+        valueFiles:
+          - $values/argo-cd/helm_values/k3s-ceplea/longhorn/values_external_secrets.yaml
+    - repoURL: git@github.com:balutoiu/k3s.git
+      targetRevision: HEAD
+      ref: values
+    - path: argo-cd/extras/k3s-ceplea/longhorn
+      repoURL: git@github.com:balutoiu/k3s.git
+      targetRevision: HEAD
+      directory:
+        recurse: true
+  destination:
+    namespace: longhorn
+    server: https://kubernetes.default.svc
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      - PruneLast=true
+    automated:
+      prune: true
+      selfHeal: true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+  ignoreDifferences:
+    - group: apiextensions.k8s.io
+      kind: CustomResourceDefinition
+      jsonPointers:
+        - /spec/preserveUnknownFields

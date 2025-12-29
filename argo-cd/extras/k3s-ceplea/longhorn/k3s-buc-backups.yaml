@@ -1,0 +1,11 @@
+apiVersion: longhorn.io/v1beta2
+kind: RecurringJob
+metadata:
+  name: longhorn-k3s-buc-backups
+spec:
+  cron: "0 3 * * *"
+  task: backup
+  groups:
+    - k3s-buc-backups
+  retain: 3
+  concurrency: 2
