@@ -1,0 +1,97 @@
+global:
+  alwaysAppendIdentifierToResourceName: true
+
+defaultPodOptions:
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                  - sea-pi
+
+controllers:
+  samba-sea-pi:
+    containers:
+      samba:
+        image:
+          repository: dockurr/samba
+          pullPolicy: IfNotPresent
+          tag: 4.22.6
+        env:
+          NAME: archive
+          USER:
+            valueFrom:
+              secretKeyRef:
+                name: samba-sea-pi-user-creds
+                key: username
+          PASS:
+            valueFrom:
+              secretKeyRef:
+                name: samba-sea-pi-user-creds
+                key: password
+        resources:
+          requests:
+            cpu: 1m
+            memory: 128Mi
+          limits:
+            memory: 128Mi
+
+service:
+  samba-sea-pi:
+    controller: samba-sea-pi
+    type: LoadBalancer
+    annotations:
+      metallb.io/loadBalancerIPs: 10.130.11.11
+      external-dns.alpha.kubernetes.io/hostname: samba.internal.buc.balutoiu.com
+    ports:
+      samba:
+        protocol: TCP
+        port: 445
+
+configMaps:
+  config:
+    data:
+      smb.conf: |
+        [global]
+          server string = samba
+          idmap config * : range = 3000-7999
+          security = user
+          server min protocol = SMB2
+
+          workgroup = WORKGROUP
+          netbios name = SAMBASEAPI
+          netbios aliases = samba.internal.buc.balutoiu.com, samba.localdomain
+
+          # disable printing services
+          load printers = no
+          printing = bsd
+          printcap name = /dev/null
+          disable spoolss = yes
+
+        [archive]
+          path = /storage/archive
+          comment = Archive Share
+          valid users = @smb
+          browseable = yes
+          read only = yes
+          force user = smb
+          force group = smb
+
+persistence:
+  storage:
+    type: hostPath
+    hostPath: /storage/backup/archive
+    hostPathType: Directory
+    globalMounts:
+      - path: /storage/archive
+        readOnly: true
+
+  config:
+    type: configMap
+    identifier: config
+    globalMounts:
+      - path: /etc/samba/smb.conf
+        subPath: smb.conf

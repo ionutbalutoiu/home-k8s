@@ -1,0 +1,41 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: samba-sea-pi
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  sources:
+    - chart: app-template
+      repoURL: https://bjw-s-labs.github.io/helm-charts
+      targetRevision: 4.5.0
+      helm:
+        valueFiles:
+          - $values/argo-cd/helm_values/k3s-buc/samba-sea-pi/values.yaml
+    - repoURL: git@github.com:balutoiu/k3s.git
+      path: charts/external-secrets
+      targetRevision: HEAD
+      helm:
+        valueFiles:
+          - $values/argo-cd/helm_values/k3s-buc/samba-sea-pi/values_external_secrets.yaml
+    - repoURL: git@github.com:balutoiu/k3s.git
+      targetRevision: HEAD
+      ref: values
+  destination:
+    namespace: samba
+    server: https://kubernetes.default.svc
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      - PruneLast=true
+    automated:
+      prune: true
+      selfHeal: true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
