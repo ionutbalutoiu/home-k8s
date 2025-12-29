@@ -6,7 +6,7 @@ controllers:
         image: &openvpnImage
           repository: ghcr.io/ionutbalutoiu/openvpn
           pullPolicy: IfNotPresent
-          tag: alpine3.22.1
+          tag: 2.6.15-r0-fffffff
         command:
           - /scripts/run.sh
         securityContext: &openvpnSecurityContext
