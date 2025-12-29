@@ -1,0 +1,14 @@
+reloader:
+  enableHA: true
+
+  deployment:
+    replicas: 2
+    resources:
+      requests:
+        cpu: 10m
+        memory: 64Mi
+      limits:
+        memory: 128Mi
+  podDisruptionBudget:
+    enabled: true
+    maxUnavailable: 1
