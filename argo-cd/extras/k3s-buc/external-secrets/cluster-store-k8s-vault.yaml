@@ -1,0 +1,17 @@
+---
+apiVersion: external-secrets.io/v1
+kind: ClusterSecretStore
+metadata:
+  name: onepassword-k8s
+spec:
+  provider:
+    onepassword:
+      connectHost: http://onepassword-connect.external-secrets.svc:8080
+      vaults:
+        k8s: 1
+      auth:
+        secretRef:
+          connectTokenSecretRef:
+            name: external-secrets-onepassword-connect-k8s-access-token
+            namespace: external-secrets
+            key: token
