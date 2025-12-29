@@ -22,6 +22,8 @@ ports:
         to: websecure
         scheme: https
         permanent: true
+  websecure:
+    asDefault: true
 
 ingressClass:
   enabled: true
