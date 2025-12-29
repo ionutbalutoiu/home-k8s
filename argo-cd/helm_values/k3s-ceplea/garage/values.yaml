@@ -1,0 +1,51 @@
+garage:
+  replicationFactor: "2"
+  s3:
+    api:
+      region: "garage"
+      rootDomain: "-s3.internal.balutoiu.com"
+    web:
+      rootDomain: ".balutoiu.com"
+      index: "index.html"
+
+persistence:
+  enabled: true
+  meta:
+    storageClass: longhorn-2r-xfs
+    size: 512Mi
+  data:
+    storageClass: longhorn-1r-xfs
+    size: 40Gi
+
+deployment:
+  kind: StatefulSet
+  replicaCount: 3
+
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: node_family
+              operator: In
+              values:
+                - beelink-s12-pro
+
+ingress:
+  s3:
+    api:
+      enabled: true
+      className: traefik-internal
+      hosts:
+        # garage S3 API endpoint, to be used with awscli for example
+        - host: "s3.internal.balutoiu.com"
+          paths:
+            - path: /
+              pathType: Prefix
+
+resources:
+  requests:
+    cpu: 20m
+    memory: 512Mi
+  limits:
+    memory: 512Mi

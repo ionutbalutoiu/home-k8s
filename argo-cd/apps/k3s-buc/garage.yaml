@@ -1,0 +1,36 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: garage
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  sources:
+    - path: script/helm/garage
+      repoURL: https://git.deuxfleurs.fr/Deuxfleurs/garage.git
+      targetRevision: v2.1.0
+      helm:
+        valueFiles:
+          - $values/argo-cd/helm_values/k3s-buc/garage/values.yaml
+          - $values/argo-cd/helm_values/k3s-buc/garage/secrets.yaml
+    - repoURL: https://github.com/ionutbalutoiu/home-k8s.git
+      targetRevision: HEAD
+      ref: values
+  destination:
+    namespace: garage
+    server: https://kubernetes.default.svc
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      - PruneLast=true
+    automated:
+      prune: true
+      selfHeal: true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m

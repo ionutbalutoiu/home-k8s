@@ -1,0 +1,45 @@
+garage:
+  dbEngine: "sqlite"
+  replicationFactor: "1"
+  s3:
+    api:
+      region: "garage"
+      rootDomain: "-s3.internal.buc.balutoiu.com"
+    web:
+      rootDomain: ".buc.balutoiu.com"
+      index: "index.html"
+
+image:
+  repository: dxflrs/arm64_garage
+
+persistence:
+  enabled: true
+  meta:
+    storageClass: openebs-lvm-pv-xfs
+    size: 5Gi
+  data:
+    storageClass: openebs-lvm-pv-xfs
+    size: 700Gi
+
+deployment:
+  kind: StatefulSet
+  replicaCount: 1
+
+ingress:
+  s3:
+    api:
+      enabled: true
+      className: traefik-internal
+      hosts:
+        # garage S3 API endpoint, to be used with awscli for example
+        - host: "s3.internal.buc.balutoiu.com"
+          paths:
+            - path: /
+              pathType: Prefix
+
+resources:
+  requests:
+    cpu: 20m
+    memory: 512Mi
+  limits:
+    memory: 512Mi
