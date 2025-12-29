@@ -42,9 +42,9 @@ controller:
   resources:
     requests:
       cpu: 120m
-      memory: 1Gi
+      memory: 1280Mi
     limits:
-      memory: 1Gi
+      memory: 1280Mi
 
 redis:
   metrics:
