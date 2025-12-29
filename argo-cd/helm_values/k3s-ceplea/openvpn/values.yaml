@@ -6,7 +6,7 @@ controllers:
         image: &openvpnImage
           repository: ghcr.io/ionutbalutoiu/openvpn
           pullPolicy: IfNotPresent
-          tag: 2.6.15-r0-fffffff
+          tag: 2.6.16-r0-bec1ba6
         command:
           - /scripts/run.sh
         securityContext: &openvpnSecurityContext
