@@ -24,7 +24,7 @@ controllers:
         image:
           repository: linuxserver/openssh-server
           pullPolicy: IfNotPresent
-          tag: 10.0_p1-r10-ls211 # https://hub.docker.com/r/linuxserver/openssh-server
+          tag: 10.0_p1-r10-ls212 # https://hub.docker.com/r/linuxserver/openssh-server
         env:
           TZ: Europe/Bucharest
           PUID: 101
