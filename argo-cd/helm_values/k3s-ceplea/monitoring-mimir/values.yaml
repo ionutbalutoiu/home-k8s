@@ -1,0 +1,222 @@
+nginx:
+  enabled: false
+
+.monitoring_affinity: &monitoring_affinity
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - hyper-ryzen
+                - beelink-s12-pro-02
+                - beelink-s12-pro-03
+
+gateway:
+  replicas: 3
+  enabledNonEnterprise: true
+  resources:
+    requests:
+      cpu: 5m
+      memory: 50Mi
+    limits:
+      memory: 50Mi
+  service:
+    labels:
+      prometheus.io/service-monitor: "false"
+  ingress:
+    enabled: true
+    ingressClassName: traefik-internal
+    hosts:
+      - host: mimir.internal.balutoiu.com
+        paths:
+          - path: /
+            pathType: Prefix
+    tls: []
+  affinity: *monitoring_affinity
+
+alertmanager:
+  replicas: 3
+  resources:
+    requests:
+      cpu: 10m
+      memory: 139Mi
+    limits:
+      memory: 139Mi
+  persistentVolume:
+    storageClass: longhorn-2r
+    size: 256Mi
+  affinity: *monitoring_affinity
+
+global:
+  extraEnvFrom:
+    - secretRef:
+        name: monitoring-mimir-s3-creds
+  podAnnotations:
+    bucketSecretVersion: "2"
+
+mimir:
+  structuredConfig:
+    common:
+      storage:
+        backend: s3
+        s3:
+          endpoint: garage.garage.svc:3900
+          region: garage
+          insecure: true
+          access_key_id: ${AWS_ACCESS_KEY_ID}
+          secret_access_key: ${AWS_SECRET_ACCESS_KEY}
+    blocks_storage:
+      s3:
+        bucket_name: mimir-tsdb
+    alertmanager_storage:
+      s3:
+        bucket_name: mimir-ruler
+    ruler_storage:
+      s3:
+        bucket_name: mimir-ruler
+    memberlist:
+      cluster_label: cluster.mimir
+    limits:
+      max_global_series_per_user: 2000000
+      ruler_max_rules_per_rule_group: 500
+      ingestion_rate: 50000
+      ingestion_burst_size: 1000000
+      compactor_blocks_retention_period: 60d
+
+metaMonitoring:
+  dashboards:
+    enabled: true
+    annotations:
+      grafana_dashboards_folder: Mimir
+    labels:
+      grafana_dashboard: "1"
+  serviceMonitor:
+    enabled: true
+  prometheusRule:
+    enabled: true
+    mimirAlerts: true
+    mimirRules: true
+
+.ingester_zone_configs: &ingester_zone_configs
+  extraAffinity: *monitoring_affinity
+  prepareDownscale: true
+ingester:
+  resources:
+    requests:
+      cpu: 120m
+      memory: 2Gi
+    limits:
+      memory: 2Gi
+  persistentVolume:
+    storageClass: longhorn-2r
+  zoneAwareReplication:
+    zones:
+      - name: zone-a
+        <<: *ingester_zone_configs
+      - name: zone-b
+        <<: *ingester_zone_configs
+      - name: zone-c
+        <<: *ingester_zone_configs
+
+.store_gateway_zone_configs: &store_gateway_zone_configs
+  extraAffinity: *monitoring_affinity
+  prepareDownscale: true
+store_gateway:
+  resources:
+    requests:
+      cpu: 35m
+      memory: 512Mi
+    limits:
+      memory: 512Mi
+  persistentVolume:
+    storageClass: longhorn-2r
+    size: 1Gi
+  zoneAwareReplication:
+    zones:
+      - name: zone-a
+        <<: *store_gateway_zone_configs
+      - name: zone-b
+        <<: *store_gateway_zone_configs
+      - name: zone-c
+        <<: *store_gateway_zone_configs
+
+compactor:
+  resources:
+    requests:
+      cpu: 118m
+      memory: 512Mi
+    limits:
+      memory: 512Mi
+  persistentVolume:
+    storageClass: longhorn-2r
+    size: 3Gi
+  affinity: *monitoring_affinity
+
+distributor:
+  replicas: 3
+  resources:
+    requests:
+      cpu: 55m
+      memory: 1Gi
+    limits:
+      memory: 1Gi
+  affinity: *monitoring_affinity
+
+querier:
+  resources:
+    requests:
+      cpu: 15m
+      memory: 512Mi
+    limits:
+      memory: 512Mi
+  affinity: *monitoring_affinity
+
+ruler:
+  resources:
+    requests:
+      cpu: 150m
+      memory: 256Mi
+    limits:
+      memory: 256Mi
+  affinity: *monitoring_affinity
+
+rollout_operator:
+  resources:
+    requests:
+      cpu: 2m
+      memory: 100Mi
+    limits:
+      memory: 100Mi
+  affinity: *monitoring_affinity
+
+query_scheduler:
+  resources:
+    requests:
+      cpu: 4m
+      memory: 128Mi
+    limits:
+      memory: 128Mi
+  affinity: *monitoring_affinity
+
+query_frontend:
+  resources:
+    requests:
+      cpu: 15m
+      memory: 512Mi
+    limits:
+      memory: 512Mi
+  affinity: *monitoring_affinity
+
+overrides_exporter:
+  resources:
+    requests:
+      cpu: 3m
+      memory: 50Mi
+    limits:
+      memory: 50Mi
+  affinity: *monitoring_affinity
+
+minio:
+  enabled: false

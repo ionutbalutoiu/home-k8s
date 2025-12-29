@@ -1,0 +1,106 @@
+global:
+  alwaysAppendIdentifierToResourceName: true
+
+controllers:
+  alertmanager-load-configs:
+    type: job
+    annotations:
+      # ArgoCD hook annotations
+      "argocd.argoproj.io/hook": PostSync
+      "argocd.argoproj.io/hook-delete-policy": BeforeHookCreation
+      "argocd.argoproj.io/sync-wave": "9999"
+      # Helm hook annotations
+      "helm.sh/hook": post-install,post-upgrade
+      "helm.sh/hook-delete-policy": before-hook-creation
+      "helm.sh/hook-weight": "9999"
+    containers:
+      main:
+        image:
+          repository: docker.io/alpine
+          pullPolicy: IfNotPresent
+          tag: 3.22
+        env:
+          MIMIR_ADDRESS: http://monitoring-mimir-gateway.monitoring-mimir.svc:80
+          GRAFANA_BASE_URL: https://grafana.internal.balutoiu.com
+        command:
+          - /scripts/load_alertmanager_configs.sh
+        envFrom:
+          - secretRef:
+              name: monitoring-mimir-alertmanager-secrets
+        resources:
+          requests:
+            cpu: 5m
+            memory: 256Mi
+          limits:
+            memory: 256Mi
+
+configMaps:
+  scripts:
+    data:
+      load_alertmanager_configs.sh: |
+        #!/usr/bin/env sh
+        set -eo pipefail
+
+        if [[ -z $MIMIR_ADDRESS ]]; then
+          echo "ERROR: MIMIR_ADDRESS environment variable is not set."
+          exit 1
+        fi
+
+        apk --quiet add envsubst curl jq
+
+        # Download mimirtool
+        MIMIR_VERSION=$(curl -sSL $MIMIR_ADDRESS/api/v1/status/buildinfo | jq -r '.data.version')
+        echo "Downloading mimirtool version ${MIMIR_VERSION}"
+        curl -sSL https://github.com/grafana/mimir/releases/download/mimir-${MIMIR_VERSION}/mimirtool-linux-amd64 -o /usr/bin/mimirtool
+        chmod +x /usr/bin/mimirtool
+
+        CONFIGS_DIR="/alertmanager/configs"
+        TEMPLATES_DIR="/alertmanager/templates"
+
+        cd $CONFIGS_DIR
+
+        for TENANT_ID in $(ls); do
+            echo "Loading config files and templates for tenant: $TENANT_ID"
+            ##
+            ## Render alertmanager config
+            ##
+            cat $TENANT_ID | envsubst > /tmp/${TENANT_ID}.yaml
+            ##
+            ## Render alertmanager templates
+            ##
+            export GRAFANA_PROMETHEUS_DATASOURCE_UID="prometheus-${TENANT_ID}"
+            export GRAFANA_LOKI_DATASOURCE_UID="loki-${TENANT_ID}"
+            mkdir -p /tmp/templates/${TENANT_ID}
+            for TEMPLATE_FILE in $TEMPLATES_DIR/*.tmpl; do
+              cat $TEMPLATE_FILE | envsubst "$(env | cut -d= -f1 | grep '^GRAFANA_' | sed 's/^/$/' | paste -sd' ' -)" > /tmp/templates/${TENANT_ID}/$(basename $TEMPLATE_FILE)
+            done
+            ##
+            ## Load config and templates into Mimir Alertmanager
+            ##
+            mimirtool alertmanager load /tmp/${TENANT_ID}.yaml /tmp/templates/${TENANT_ID}/* --id $TENANT_ID
+        done
+
+persistence:
+  scripts:
+    type: configMap
+    identifier: scripts
+    defaultMode: 0755
+    globalMounts:
+      - path: /scripts
+        readOnly: true
+
+  alertmanager-configs:
+    type: configMap
+    name: monitoring-mimir-alertmanager-configs
+    advancedMounts:
+      alertmanager-load-configs:
+        main:
+          - path: /alertmanager/configs
+
+  alertmanager-templates:
+    type: configMap
+    name: monitoring-mimir-alertmanager-templates
+    advancedMounts:
+      alertmanager-load-configs:
+        main:
+          - path: /alertmanager/templates

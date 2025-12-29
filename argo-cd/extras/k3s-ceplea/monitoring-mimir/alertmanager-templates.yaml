@@ -1,0 +1,114 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: monitoring-mimir-alertmanager-templates
+data:
+  discord.tmpl: |
+    {{/* Severity of the alert */}}
+    {{ define "__alert_severity" -}}
+    {{- if eq .CommonLabels.severity "critical" -}}
+    **Severity:** `Critical`
+    {{- else if eq .CommonLabels.severity "warning" -}}
+    **Severity:** `Warning`
+    {{- else if eq .CommonLabels.severity "info" -}}
+    **Severity:** `Info`
+    {{- else -}}
+    **Severity:** :question: {{ .CommonLabels.severity }}
+    {{- end }}
+    {{- end }}
+
+    {{/* Summary of the alert */}}
+    {{ define "__alert_summary" -}}
+    {{- if (index .Alerts 0).Annotations.summary -}}
+    **Summary:** {{ (index .Alerts 0).Annotations.summary }}
+    {{- end }}
+    {{- end }}
+
+    {{/* Format the list of given alerts */}}
+    {{ define "__text_alerts_list" -}}
+    {{- range . }}
+    {{- if .Annotations.description }}
+    * {{ .Annotations.description }}
+    {{- else if .Annotations.message }}
+    * {{ .Annotations.message }}
+    {{- else }}
+    * Alert `{{ .Labels.alertname }}` raised by `{{ .Labels.pod }}` in `{{ .Labels.namespace }}` namespace.
+    {{- end }}
+
+    {{- end }}
+    {{- end }}
+
+    {{/* Alert Runbook URL */}}
+    {{- define "__alert_runbook_url" -}}
+    {{- $runbookUrl := (index .Alerts 0).Annotations.runbook_url -}}
+    {{- if $runbookUrl -}}
+    :green_book: [Runbook]({{ $runbookUrl }})
+    {{- end }}
+    {{- end }}
+
+    {{/* Grafana Explore URL */}}
+    {{- define "__grafana_explore_url" -}}
+      {{- $alert := (index .Alerts 0) }}
+      {{- if $alert.GeneratorURL -}}
+        {{- /* Calculate time range: 30 minutes before and after alert start time */ -}}
+        {{- $from := printf "%d" ($alert.StartsAt.Add -1800000000000).UnixMilli }}
+        {{- $to := printf "%d" ($alert.StartsAt.Add 1800000000000).UnixMilli }}
+        {{- $grafanaExploreURL := "" }}
+        {{- if eq $alert.Labels.alert_source "loki" -}}
+          {{- /* Loki alert */ -}}
+          {{- $urlPath := $alert.GeneratorURL | reReplaceAll "%7D$" (urlquery (printf ",\"range\":{\"from\":\"%s\",\"to\":\"%s\"},\"datasource\":\"%s\"}" $from $to "$GRAFANA_LOKI_DATASOURCE_UID")) }}
+          {{- $grafanaExploreURL = printf "%s%s" "$GRAFANA_BASE_URL" $urlPath }}
+        {{- else }}
+          {{- /* Prometheus alert */ -}}
+          {{- $grafanaExploreURL = grafanaExploreURL "$GRAFANA_BASE_URL" "$GRAFANA_PROMETHEUS_DATASOURCE_UID" $from $to (queryFromGeneratorURL $alert.GeneratorURL) -}}
+        {{- end -}}
+        :bar_chart: [Grafana Explore URL]({{ $grafanaExploreURL }})
+      {{- end }}
+    {{- end }}
+
+    {{/* Alertmanager Silence URL */}}
+    {{- define "__alert_silence_url" -}}
+      {{- $queryParams := "" }}
+      {{- range .CommonLabels.SortedPairs }}
+        {{- $kv := printf "%s=\"%s\"" .Name .Value }}
+        {{- if eq $queryParams "" -}}
+          {{- $queryParams = printf "%s%s" $queryParams $kv }}
+        {{- else }}
+          {{- $queryParams = printf "%s%s%s" $queryParams "," $kv }}
+        {{- end }}
+      {{- end }}
+      {{- $urlQuery := urlquery (printf "{%s}" $queryParams) }}
+      {{- $silenceUrl := printf "%s/#/silences/new?filter=%s" "https://mimir.internal.balutoiu.com/alertmanager" $urlQuery -}}
+    :no_bell: [Silence]({{ $silenceUrl }})
+    {{- end }}
+
+    {{/* Title of the Discord alert */}}
+    {{ define "discord.title" -}}
+    [{{ .Status | toUpper -}}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}] {{ .CommonLabels.alertname }}
+    {{- end }}
+
+    {{/* Message of the Discord alert */}}
+    {{ define "discord.message" -}}
+    {{ template "__alert_severity" . }}
+    {{ template "__alert_summary" . }}
+
+    {{- if gt (len .Alerts.Firing) 0 }}
+
+
+    ### :warning: Alerts Firing
+    {{- template "__text_alerts_list" .Alerts.Firing }}
+    {{- end }}
+
+    {{- if gt (len .Alerts.Resolved) 0 }}
+
+
+    ### :white_check_mark: Alerts Resolved
+    {{- template "__text_alerts_list" .Alerts.Resolved }}
+    {{- end }}
+
+
+    ---
+    {{ template "__grafana_explore_url" . }}
+    {{ template "__alert_silence_url" . }}
+    {{ template "__alert_runbook_url" . }}
+    {{ end }}
