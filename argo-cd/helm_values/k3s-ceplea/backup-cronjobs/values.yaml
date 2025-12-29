@@ -56,7 +56,8 @@ controllers:
                       - hyper-ryzen
 
 configMaps:
-  configs:
+  backup-configs:
+    forceRename: backup-configs
     data:
       hyper-ryzen.yaml: |-
         backups:
