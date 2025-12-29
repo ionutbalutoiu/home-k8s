@@ -1,0 +1,10 @@
+cm:
+  data:
+    range-global: 10.119.20.10-10.119.20.250
+
+resources:
+  requests:
+    cpu: 3m
+    memory: 85Mi
+  limits:
+    memory: 85Mi
