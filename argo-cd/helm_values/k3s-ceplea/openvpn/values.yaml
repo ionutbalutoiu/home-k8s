@@ -1,0 +1,259 @@
+controllers:
+  openvpn:
+    strategy: Recreate
+    containers:
+      openvpn:
+        image: &openvpnImage
+          repository: ghcr.io/ionutbalutoiu/openvpn
+          pullPolicy: IfNotPresent
+          tag: alpine3.22.1
+        command:
+          - /scripts/run.sh
+        securityContext: &openvpnSecurityContext
+          runAsUser: 0
+          runAsGroup: 0
+          privileged: true
+          capabilities:
+            add:
+              - NET_ADMIN
+        resources:
+          requests:
+            memory: 50Mi
+            cpu: 1m
+          limits:
+            memory: 50Mi
+    initContainers:
+      enable-ip-forward:
+        image:
+          repository: busybox
+          pullPolicy: IfNotPresent
+          tag: 1.37.0
+        command:
+          - sysctl
+        args:
+          - -w
+          - net.ipv4.ip_forward=1
+        securityContext:
+          privileged: true
+      init-openvpn:
+        image: *openvpnImage
+        command:
+          - /scripts/init.sh
+        securityContext: *openvpnSecurityContext
+
+service:
+  openvpn:
+    controller: openvpn
+    type: LoadBalancer
+    loadBalancerIP: "10.119.20.12"
+    ports:
+      openvpn:
+        protocol: UDP
+        port: 1194
+
+configMaps:
+  config:
+    data:
+      openvpn.conf: |-
+        proto udp
+        port 1194
+        dev tun
+        server 192.168.240.0 255.255.255.0
+        topology subnet
+
+        keepalive 10 60
+        crl-verify /etc/openvpn/pki/crl.pem
+        ifconfig-pool-persist /etc/openvpn/ipp.txt
+        client-config-dir /etc/openvpn/ccd
+        client-to-client
+        explicit-exit-notify 1
+        allow-compression no
+
+        ca /etc/openvpn/pki/ca.crt
+        cert /etc/openvpn/pki/issued/server.crt
+        key /etc/openvpn/pki/private/server.key
+        dh none
+        tls-crypt /etc/openvpn/pki/ta.key 0
+        cipher AES-256-GCM
+        auth SHA256
+        persist-key
+        persist-tun
+
+        verb 3
+        status /tmp/openvpn-status.log
+
+        push "dhcp-option DNS 10.43.0.10"
+        push "route 10.42.0.0 255.255.0.0"
+        push "route 10.43.0.0 255.255.0.0"
+        push "route 10.119.0.0 255.255.0.0"
+        push "route 10.101.0.0 255.255.0.0"
+        push "route 10.102.0.0 255.255.0.0"
+
+        user openvpn
+        group openvpn
+
+  scripts:
+    data:
+      generate-client-cert.sh: |-
+        #!/usr/bin/env bash
+        set -o errexit
+        set -o pipefail
+
+        if [[ $# -ne 1 ]]; then
+            echo "USAGE: $0 <CLIENT_NAME>"
+            exit 1
+        fi
+
+        easyrsa build-client-full $1 nopass
+
+      get-client-cert.sh: |-
+        #!/usr/bin/env bash
+        set -o errexit
+        set -o pipefail
+
+        if [[ $# -ne 1 ]]; then
+            echo "USAGE: $0 <CLIENT_NAME>"
+            exit 1
+        fi
+
+        if [[ ! -f "${EASYRSA_PKI}/private/${1}.key" ]]; then
+            echo "Client certificate for ${1} does not exist"
+            exit 1
+        fi
+
+        cat << EOF
+        client
+        dev tun
+        proto udp
+        remote home.balutoiu.com 1195 udp
+        cipher AES-256-GCM
+        auth SHA256
+        remote-cert-tls server
+
+        resolv-retry infinite
+        nobind
+        verb 3
+
+        <key>
+        $(cat ${EASYRSA_PKI}/private/${1}.key)
+        </key>
+        <cert>
+        $(openssl x509 -in ${EASYRSA_PKI}/issued/${1}.crt)
+        </cert>
+        <ca>
+        $(cat ${EASYRSA_PKI}/ca.crt)
+        </ca>
+        key-direction 1
+        <tls-crypt>
+        $(cat ${EASYRSA_PKI}/ta.key)
+        </tls-crypt>
+
+        # Comment this if you don't want to redirect the default network gateway
+        # through the VPN, causing all IP traffic such as web browsing and DNS
+        # lookups to go through the VPN.
+        redirect-gateway def1 bypass-dhcp
+
+        # On Windows, uncomment this to block all outside DNS requests.
+        # It's useful only when all traffic is routed through the VPN.
+        ;block-outside-dns
+        EOF
+
+      revoke-client-cert.sh: |-
+        #!/usr/bin/env bash
+
+        if [[ $# -ne 1 ]]; then
+            echo "USAGE: $0 <CLIENT_NAME>"
+            exit 1
+        fi
+
+        CLIENT_NAME="$1"
+
+        # Revoke client certificate and generate a new CRL
+        easyrsa revoke $CLIENT_NAME
+        easyrsa gen-crl
+        chown openvpn:openvpn ${EASYRSA_PKI}/crl.pem
+
+        # Remove the client files
+        rm -f ${EASYRSA_PKI}/private/${CLIENT_NAME}.key
+        rm -f ${EASYRSA_PKI}/reqs/${CLIENT_NAME}.req
+
+      init.sh: |-
+        #!/usr/bin/env bash
+        set -o errexit
+        set -o pipefail
+
+        #
+        # Init OpenVPN PKI
+        #
+        if [[ ! -d "${EASYRSA_PKI}" ]]; then
+            echo "Initializing PKI"
+            cd /etc/openvpn
+            easyrsa init-pki
+            easyrsa build-ca nopass
+            openvpn --genkey secret ${EASYRSA_PKI}/ta.key
+            easyrsa build-server-full server nopass
+            easyrsa gen-crl
+        else
+            echo "PKI already exists, skipping init"
+        fi
+
+      run.sh: |-
+        #!/usr/bin/env bash
+        set -o errexit
+        set -o pipefail
+
+        #
+        # Init tun device
+        #
+        mkdir -p /dev/net
+        if [ ! -c /dev/net/tun ]; then
+            mknod /dev/net/tun c 10 200
+        fi
+
+        #
+        # Setup iptables rule to VPN clients to use the VPN as default gateway
+        #
+        DEFAULT_IFACE=$(ip route show default | awk '/default/ {print $5}')
+        iptables -t nat -A POSTROUTING -s 192.168.240.0/255.255.255.0 -o ${DEFAULT_IFACE} -j MASQUERADE
+
+        #
+        # Use exec for openvpn process so it receives lifecycle signals
+        #
+        exec openvpn --config /etc/openvpn/openvpn.conf
+
+  ccd:
+    data:
+      iony-mba: |-
+        ifconfig-push 192.168.240.13 255.255.255.0
+
+persistence:
+  config:
+    type: configMap
+    identifier: config
+    globalMounts:
+      - path: /etc/openvpn/openvpn.conf
+        readOnly: true
+        subPath: openvpn.conf
+
+  scripts:
+    type: configMap
+    identifier: scripts
+    defaultMode: 0755
+    globalMounts:
+      - path: /scripts
+        readOnly: true
+
+  openvpn-etc:
+    suffix: openvpn-etc
+    type: persistentVolumeClaim
+    accessMode: ReadWriteOnce
+    size: 100Mi
+    globalMounts:
+      - path: /etc/openvpn
+
+  openvpn-ccd:
+    type: configMap
+    identifier: ccd
+    globalMounts:
+      - path: /etc/openvpn/ccd
+        readOnly: true
