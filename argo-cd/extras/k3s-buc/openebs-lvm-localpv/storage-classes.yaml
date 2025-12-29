@@ -1,0 +1,71 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: openebs-lvm-pv
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "true"
+parameters:
+  storage: lvm
+  volgroup: k8s-vg
+  shared: "yes"
+provisioner: local.csi.openebs.io
+reclaimPolicy: Delete
+allowVolumeExpansion: true
+allowedTopologies:
+  - matchLabelExpressions:
+      - key: kubernetes.io/hostname
+        values:
+          - sea-pi
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: openebs-lvm-pv-xfs
+parameters:
+  storage: lvm
+  volgroup: k8s-vg
+  shared: "yes"
+  fsType: xfs
+provisioner: local.csi.openebs.io
+reclaimPolicy: Delete
+allowVolumeExpansion: true
+allowedTopologies:
+  - matchLabelExpressions:
+      - key: kubernetes.io/hostname
+        values:
+          - sea-pi
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: openebs-lvm-pv-ssd-usb
+parameters:
+  storage: lvm
+  volgroup: ssd-usb
+  shared: "yes"
+provisioner: local.csi.openebs.io
+reclaimPolicy: Delete
+allowVolumeExpansion: true
+allowedTopologies:
+  - matchLabelExpressions:
+      - key: kubernetes.io/hostname
+        values:
+          - sea-pi
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: openebs-lvm-pv-ssd-usb-xfs
+parameters:
+  storage: lvm
+  volgroup: ssd-usb
+  shared: "yes"
+  fsType: xfs
+provisioner: local.csi.openebs.io
+reclaimPolicy: Delete
+allowVolumeExpansion: true
+allowedTopologies:
+  - matchLabelExpressions:
+      - key: kubernetes.io/hostname
+        values:
+          - sea-pi
