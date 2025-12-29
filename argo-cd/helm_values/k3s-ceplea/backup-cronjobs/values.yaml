@@ -106,7 +106,7 @@ persistence:
 
   scripts:
     type: configMap
-    identifier: backup-configs
+    identifier: configs
     globalMounts:
       - path: /configs
 
