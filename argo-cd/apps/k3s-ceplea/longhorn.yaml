@@ -14,17 +14,17 @@ spec:
       helm:
         valueFiles:
           - $values/argo-cd/helm_values/k3s-ceplea/longhorn/values.yaml
-    - repoURL: git@github.com:balutoiu/k3s.git
+    - repoURL: https://github.com/ionutbalutoiu/home-k8s.git
       path: charts/external-secrets
       targetRevision: HEAD
       helm:
         valueFiles:
           - $values/argo-cd/helm_values/k3s-ceplea/longhorn/values_external_secrets.yaml
-    - repoURL: git@github.com:balutoiu/k3s.git
+    - repoURL: https://github.com/ionutbalutoiu/home-k8s.git
       targetRevision: HEAD
       ref: values
     - path: argo-cd/extras/k3s-ceplea/longhorn
-      repoURL: git@github.com:balutoiu/k3s.git
+      repoURL: https://github.com/ionutbalutoiu/home-k8s.git
       targetRevision: HEAD
       directory:
         recurse: true
