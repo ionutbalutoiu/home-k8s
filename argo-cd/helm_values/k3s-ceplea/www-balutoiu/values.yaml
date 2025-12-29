@@ -1,0 +1,113 @@
+global:
+  alwaysAppendIdentifierToResourceName: true
+
+controllers:
+  www-balutoiu:
+    containers:
+      nginx:
+        image:
+          repository: docker.io/nginx
+          pullPolicy: IfNotPresent
+          tag: 1.29.4 # https://hub.docker.com/_/nginx
+        probes:
+          readiness:
+            enabled: true
+          startup:
+            enabled: true
+        resources:
+          requests:
+            cpu: 10m
+            memory: 128Mi
+          limits:
+            memory: 128Mi
+      openssh-server:
+        image:
+          repository: docker.io/linuxserver/openssh-server
+          pullPolicy: IfNotPresent
+          tag: 10.0_p1-r10-ls211 # https://hub.docker.com/r/linuxserver/openssh-server
+        env:
+          TZ: Europe/Bucharest
+          PUID: 101
+          PGID: 101
+          USER_NAME: files
+          PUBLIC_KEY_DIR: /ssh-pub-keys
+        resources:
+          requests:
+            cpu: 20m
+            memory: 128Mi
+          limits:
+            memory: 128Mi
+        ports:
+          - containerPort: 2222
+            name: ssh
+            protocol: TCP
+
+service:
+  nginx:
+    controller: www-balutoiu
+    primary: true
+    ports:
+      http:
+        port: 80
+  ssh:
+    controller: www-balutoiu
+    type: LoadBalancer
+    primary: false
+    annotations:
+      external-dns.alpha.kubernetes.io/hostname: www-balutoiu.internal.balutoiu.com
+    ports:
+      ssh:
+        port: 22
+        protocol: TCP
+        targetPort: 2222
+
+ingress:
+  www-balutoiu:
+    className: traefik-external
+    hosts:
+      - host: balutoiu.com
+        paths:
+          - path: /
+            pathType: Prefix
+            service:
+              identifier: nginx
+              port: http
+
+configMaps:
+  ssh-pub-keys:
+    data:
+      iony-mba: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCYdmNB3np8OLc49B4cAh59CdNYIb4fAq2XBQ1sbOZMMZmhpFobyy+i6s4lBnovMNWAB6HmpsECHrKRU4IFl9lQ7vV+++J08SLoAkl6G0Gk9tmbgEs+/ovCZg+qUfZA1ZccSAPHmtqfZOiJcnlIlhQq2BoFnLUwmpeIQ4H5D+Y2q7DMdyGkdCenH80aD5KuiwLIyiBL9q7RYz0U5cdCO3wDFU4+5XuZiT8VYDUgp3mWPpAiPdGsJmCn41tpt3PViPDQlKh4vLW0ieQUJI/v2f6oHbM9YkxSoVlwLcrjTv+Nl+dVymqVTF4UaT1kz+ZnoH6khKZxSHvKm9YHc4LNZKYoVdyCxdZvBfxbEbXpT702vLqDNGEfZSlzJs5kVqP30m8fI/yzTQeD7tgjzzrKWdLZacyo+9cWeH6nFfZAQuZ9ug1lv3UAs5x6MsidEH5u6Iymi8BE+mUsOXnSpSfUDDo5n6+CMVe93brdW21iSX9Hbuz5RKB6xile1ROHpvpi1u7VQ9Hp3FIZFFiix9S5jniyB2OqjGKTO6RULfPsJo8sXCLq9YKq9zrkpMv5wURMQKnjtS5OHUWh0cde3U/VikPIfLkzEsfLV8ICAksyuWHQJGVUMxhPmSTKtRsPScbklekT+n65rexDt4Qr73YOy9BUIPV4Mo+kkl4ugQd6VCKJ6w==
+      iony-wsl: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC0MD0qR6woK3aqPuwv5uTbwW1I+4YzcPaj4P4SqnDY//GdwdrTK8KY8M1xtQNX4xktvvkQrvo7Oje5cnQPjeAKClQcjqtX1cvtB3AIs14MghW0ETJDLgXozBo2q7mSvxcrR941Y2cyDLSdbYyCXdwiWGnyUPv4pN5q4LqFKayaTSUZ2tSt+4okVarljDXyqRPP6g4wSrFpKtmpD4jCTa6hCg2kCBXkr4sWu0FL/CSYKm4TkksRPzp6FpS4TYndklpSpoc/Q+c0O/bdZ9xO87pSLWrWPQ5hO58SwfJib50Z5KYL80IvLjOEebwEDY0VXcKnhh/CrRNrPbF8Yf+3MbPcJNybH61YAco7OjLJ4bqR8Fwa4mVhor1uzIqyzXrkgNHXGFx/i5cAd85Ip87w24JFYkvjv9VmklKh4lXKSGpHGBnRMXbTeknpYwPDmTxrmklQYAcZYTMcsSQ9deUTRLt+qILrJUt/mYHfrzihfXGJviRRD4SvOmMJURDxanmvuuM=
+      tekmetric-mbp: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIALGCJaYsIYPbn9Kr9CrckwnE+ZPGoO6nxANmaNr6elG
+
+persistence:
+  www:
+    type: persistentVolumeClaim
+    accessMode: ReadWriteOnce
+    storageClass: longhorn-2r
+    size: 5Gi
+    advancedMounts:
+      www-balutoiu:
+        nginx:
+          - path: /usr/share/nginx/html
+        openssh-server:
+          - path: /files
+
+  ssh-config:
+    type: persistentVolumeClaim
+    accessMode: ReadWriteOnce
+    storageClass: longhorn-2r
+    size: 128Mi
+    advancedMounts:
+      www-balutoiu:
+        openssh-server:
+          - path: /config
+
+  ssh-pub-keys:
+    type: configMap
+    identifier: ssh-pub-keys
+    advancedMounts:
+      www-balutoiu:
+        openssh-server:
+          - path: /ssh-pub-keys
+            readOnly: true

@@ -1,0 +1,24 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: www-balutoiu-alerts
+  labels:
+    loki: "1"
+spec:
+  groups:
+    - name: nginx-404-requests
+      rules:
+        - alert: WWWBalutoiuNginx404Requests
+          expr: |
+            count_over_time(
+                {service_name="www-balutoiu", container="nginx"}
+                | pattern `<_> - - <_> "<method> <_> <_>" <status> <_> <_> "<_>" <_>`
+                | status = "404"
+            [5m]) > 200
+          for: 0m
+          labels:
+            severity: warning
+          annotations:
+            summary: A high number of 404 errors detected in Nginx `www-balutoiu` logs.
+            description: |-
+              Nginx `www-balutoiu` is encountering an unusually high number of 404 errors. Current count: `{{ $value }}`.
