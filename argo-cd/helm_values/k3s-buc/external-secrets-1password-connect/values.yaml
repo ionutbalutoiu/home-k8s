@@ -1,0 +1,18 @@
+connect:
+  replicas: 1
+
+  api:
+    resources:
+      requests:
+        cpu: 1m
+        memory: 50Mi
+      limits:
+        memory: 50Mi
+
+  sync:
+    resources:
+      requests:
+        cpu: 1m
+        memory: 32Mi
+      limits:
+        memory: 32Mi

@@ -1,0 +1,10 @@
+connect:
+  replicas: 1
+
+  api:
+    resources:
+      requests:
+        cpu: 3m
+        memory: 128Mi
+      limits:
+        memory: 128Mi
