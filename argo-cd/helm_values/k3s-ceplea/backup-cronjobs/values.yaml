@@ -2,7 +2,8 @@ global:
   alwaysAppendIdentifierToResourceName: true
 
 controllers:
-  hyper-ryzen:
+  backup-hyper-ryzen:
+    forceRename: backup-hyper-ryzen
     type: cronjob
     cronjob:
       timeZone: Etc/GMT+2 # Bucharest Timezone
