@@ -1,0 +1,101 @@
+global:
+  alwaysAppendIdentifierToResourceName: true
+
+controllers:
+  wireguard:
+    strategy: Recreate
+    containers:
+      wireguard:
+        image:
+          repository: linuxserver/wireguard
+          pullPolicy: IfNotPresent
+          tag: 1.0.20250521
+        env:
+          TZ: Europe/Bucharest
+          PUID: 0
+          PGID: 0
+          SERVERPORT: "51820"
+          SERVERURL: wg.buc.balutoiu.com
+          INTERNAL_SUBNET: 192.168.98.0/24
+          PEERS: "\
+            IonyMBA,\
+            IonyPhone"
+          ALLOWEDIPS: 0.0.0.0/0
+          PERSISTENTKEEPALIVE_PEERS: all
+          LOG_CONFS: "false"
+        securityContext:
+          capabilities:
+            add:
+              - NET_ADMIN
+              - SYS_MODULE
+        resources:
+          requests:
+            cpu: 5m
+            memory: 64Mi
+          limits:
+            memory: 128Mi
+    initContainers:
+      init-wireguard:
+        image:
+          repository: alpine
+          pullPolicy: IfNotPresent
+          tag: 3.23
+        command:
+          - /wg-scripts/init.sh
+        securityContext:
+          privileged: true
+        resources:
+          requests:
+            cpu: 1m
+            memory: 32Mi
+          limits:
+            memory: 32Mi
+
+service:
+  wireguard:
+    controller: wireguard
+    type: LoadBalancer
+    ports:
+      wireguard:
+        protocol: UDP
+        port: 51820
+
+configMaps:
+  scripts:
+    data:
+      init.sh: |
+        #!/bin/sh
+        set -e
+
+        sysctl -w net.ipv4.ip_forward=1
+        sysctl -w net.ipv4.conf.all.src_valid_mark=1
+
+persistence:
+  host-lib-modules:
+    type: hostPath
+    hostPath: /lib/modules
+    hostPathType: Directory
+    advancedMounts:
+      wireguard:
+        wireguard:
+          - path: /lib/modules
+
+  scripts:
+    type: configMap
+    identifier: scripts
+    defaultMode: 0755
+    advancedMounts:
+      wireguard:
+        init-wireguard:
+          - path: /wg-scripts/init.sh
+            readOnly: true
+            subPath: init.sh
+
+  config:
+    type: persistentVolumeClaim
+    accessMode: ReadWriteOnce
+    size: 128Mi
+    advancedMounts:
+      wireguard:
+        wireguard:
+          - path: /config
