@@ -1,0 +1,38 @@
+controllers:
+  teamspeak:
+    replicas: 1
+    containers:
+      teamspeak:
+        image:
+          repository: teamspeak
+          pullPolicy: IfNotPresent
+          tag: 3.13.7
+        env:
+          TS3SERVER_LICENSE: accept
+        resources:
+          limits:
+            memory: 128Mi
+          requests:
+            cpu: 5m
+            memory: 128Mi
+
+service:
+  teamspeak:
+    controller: teamspeak
+    type: LoadBalancer
+    ports:
+      voice-port:
+        port: 9987
+        protocol: UDP
+
+persistence:
+  teamspeak-data:
+    suffix: teamspeak-data
+    type: persistentVolumeClaim
+    storageClass: longhorn-2r
+    accessMode: ReadWriteOnce
+    size: 256Mi
+    advancedMounts:
+      teamspeak:
+        teamspeak:
+          - path: /var/ts3server
