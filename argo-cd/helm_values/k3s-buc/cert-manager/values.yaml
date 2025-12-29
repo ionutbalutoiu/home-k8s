@@ -1,0 +1,25 @@
+crds:
+  enabled: true
+
+resources:
+  requests:
+    cpu: 1m
+    memory: 58Mi
+  limits:
+    memory: 58Mi
+
+webhook:
+  resources:
+    requests:
+      cpu: 1m
+      memory: 45Mi
+    limits:
+      memory: 45Mi
+
+cainjector:
+  resources:
+    requests:
+      cpu: 1m
+      memory: 75Mi
+    limits:
+      memory: 75Mi
