@@ -1,0 +1,40 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: metallb
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  sources:
+    - chart: metallb
+      repoURL: https://metallb.github.io/metallb
+      targetRevision: 0.15.3
+      helm:
+        valueFiles:
+          - $values/argo-cd/helm_values/k3s-buc/metallb/values.yaml
+    - repoURL: https://github.com/ionutbalutoiu/home-k8s.git
+      targetRevision: HEAD
+      ref: values
+    - path: argo-cd/extras/k3s-buc/metallb
+      repoURL: https://github.com/ionutbalutoiu/home-k8s.git
+      targetRevision: HEAD
+      directory:
+        recurse: true
+  destination:
+    namespace: metallb-system
+    server: https://kubernetes.default.svc
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      - PruneLast=true
+    automated:
+      prune: true
+      selfHeal: true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m

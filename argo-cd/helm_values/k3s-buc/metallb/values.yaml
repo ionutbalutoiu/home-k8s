@@ -1,0 +1,15 @@
+controller:
+  resources:
+    requests:
+      cpu: 4m
+      memory: 96Mi
+    limits:
+      memory: 96Mi
+
+speaker:
+  resources:
+    requests:
+      cpu: 10m
+      memory: 128Mi
+    limits:
+      memory: 128Mi
