@@ -1,0 +1,42 @@
+name: OpenVPN
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/openvpn.yaml
+      - images/openvpn/**
+
+jobs:
+  container-image-tag:
+    runs-on: ubuntu-latest
+    outputs:
+      image_tag: ${{ steps.set-image-tag.outputs.image_tag }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set OpenVPN image tag
+        id: set-image-tag
+        shell: bash
+        run: |
+          set -eo pipefail
+
+          OPENVPN_VERSION=$(cat ./images/openvpn/Dockerfile | grep -E "ENV.OPENVPN_VERSION" | cut -d "=" -f2 | sed "s/\"//g")
+          GIT_SHA="${GITHUB_SHA::7}"
+
+          echo "image_tag=${OPENVPN_VERSION}-${GIT_SHA}" >> $GITHUB_OUTPUT
+
+  container-image:
+    uses: ionutbalutoiu/gha-utils/.github/workflows/docker-buildx.yaml@main
+    permissions:
+      contents: read
+      packages: write
+    needs: container-image-tag
+    with:
+      image_name: openvpn
+      image_tag: ${{ needs.container-image-tag.outputs.image_tag }}
+      context: ./images/openvpn
+      platforms: linux/amd64
+    secrets: inherit

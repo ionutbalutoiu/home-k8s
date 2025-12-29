@@ -3,6 +3,7 @@
   "extends": [
     "config:recommended",
     "customManagers:githubActionsVersions",
+    "customManagers:dockerfileVersions",
     ":disableRateLimiting"
   ],
   "argocd": {
