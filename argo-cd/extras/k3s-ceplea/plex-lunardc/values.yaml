@@ -1,0 +1,55 @@
+defaultPodOptions:
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                  - hyper-ryzen
+
+controllers:
+  plex:
+    containers:
+      plex:
+        image:
+          repository: lscr.io/linuxserver/plex
+          pullPolicy: IfNotPresent
+          tag: 1.42.2 # https://hub.docker.com/r/linuxserver/plex/tags
+        env:
+          TZ: Europe/London
+          PUID: 0
+          PGID: 0
+        probes:
+          readiness:
+            enabled: true
+          startup:
+            enabled: true
+        resources:
+          requests:
+            cpu: 100m
+            memory: 4Gi
+          limits:
+            memory: 4Gi
+
+service:
+  plex:
+    controller: plex
+    type: NodePort
+    ports:
+      http:
+        port: 32400
+        nodePort: 32401
+
+persistence:
+  config:
+    type: hostPath
+    hostPath: /storage/ssd-nvme-raid0/pvc-shared/plex-lunardc
+    globalMounts:
+      - path: /config
+  storage:
+    type: hostPath
+    hostPath: /storage/ssd-nvme-raid0/downloads
+    globalMounts:
+      - path: /storage
