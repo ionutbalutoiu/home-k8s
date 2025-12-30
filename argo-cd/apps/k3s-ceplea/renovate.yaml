@@ -10,7 +10,7 @@ spec:
   sources:
     - chart: renovate
       repoURL: ghcr.io/renovatebot/charts
-      targetRevision: 45.60.13
+      targetRevision: 45.60.14
       helm:
         valueFiles:
           - $values/argo-cd/helm_values/k3s-ceplea/renovate/values.yaml
