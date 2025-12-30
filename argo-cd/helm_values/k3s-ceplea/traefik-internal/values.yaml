@@ -1,6 +1,6 @@
 deployment:
   kind: Deployment
-  replicas: 2
+  replicas: 3
   annotations:
     reloader.stakater.com/auto: "true"
 
