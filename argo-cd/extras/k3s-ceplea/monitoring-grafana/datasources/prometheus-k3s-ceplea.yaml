@@ -1,0 +1,20 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: monitoring-grafana-ds-prometheus-k3s-ceplea
+  labels:
+    grafana_datasource: "1"
+data:
+  datasources.yaml: |
+    apiVersion: 1
+    datasources:
+      - name: prometheus-k3s-ceplea
+        uid: prometheus-k3s-ceplea
+        type: prometheus
+        url: http://monitoring-mimir-gateway.monitoring-mimir.svc:80/prometheus
+        isDefault: true
+        jsonData:
+          httpHeaderName1: "X-Scope-OrgID"
+        secureJsonData:
+          httpHeaderValue1: "k3s-ceplea"

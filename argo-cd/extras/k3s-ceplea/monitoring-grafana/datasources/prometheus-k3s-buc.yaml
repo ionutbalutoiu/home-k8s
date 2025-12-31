@@ -1,0 +1,19 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: monitoring-grafana-ds-prometheus-k3s-buc
+  labels:
+    grafana_datasource: "1"
+data:
+  datasources.yaml: |
+    apiVersion: 1
+    datasources:
+      - name: prometheus-k3s-buc
+        uid: prometheus-k3s-buc
+        type: prometheus
+        url: http://monitoring-mimir-gateway.monitoring-mimir.svc:80/prometheus
+        jsonData:
+          httpHeaderName1: "X-Scope-OrgID"
+        secureJsonData:
+          httpHeaderValue1: "k3s-buc"

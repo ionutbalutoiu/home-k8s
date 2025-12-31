@@ -1,0 +1,18 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: monitoring-grafana-ds-alertmanager
+  labels:
+    grafana_datasource: "1"
+data:
+  datasources.yaml: |
+    apiVersion: 1
+    datasources:
+      - name: alertmanager
+        uid: alertmanager
+        type: alertmanager
+        url: http://monitoring-mimir-gateway.monitoring-mimir.svc:80/alertmanager
+        jsonData:
+          implementation: prometheus
+          handleGrafanaManagedAlerts: false

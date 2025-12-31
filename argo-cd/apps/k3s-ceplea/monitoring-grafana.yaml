@@ -1,0 +1,46 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: monitoring-grafana
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  sources:
+    - chart: grafana
+      repoURL: https://grafana.github.io/helm-charts
+      targetRevision: 10.4.3
+      helm:
+        valueFiles:
+          - $values/argo-cd/helm_values/k3s-ceplea/monitoring-grafana/values.yaml
+    - repoURL: https://github.com/ionutbalutoiu/home-k8s.git
+      path: charts/external-secrets
+      targetRevision: HEAD
+      helm:
+        valueFiles:
+          - $values/argo-cd/helm_values/k3s-ceplea/monitoring-grafana/values_external_secrets.yaml
+    - repoURL: https://github.com/ionutbalutoiu/home-k8s.git
+      targetRevision: HEAD
+      ref: values
+    - path: argo-cd/extras/k3s-ceplea/monitoring-grafana
+      repoURL: https://github.com/ionutbalutoiu/home-k8s.git
+      targetRevision: HEAD
+      directory:
+        recurse: true
+  destination:
+    namespace: monitoring-grafana
+    server: https://kubernetes.default.svc
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      - PruneLast=true
+    automated:
+      prune: true
+      selfHeal: true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m

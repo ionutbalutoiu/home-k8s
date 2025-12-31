@@ -1,0 +1,69 @@
+admin:
+  existingSecret: monitoring-grafana-admin-credentials
+  userKey: ADMIN_USER
+  passwordKey: ADMIN_PASSWORD
+
+deploymentStrategy:
+  type: Recreate
+
+grafana.ini:
+  auth:
+    disable_login_form: true
+  auth.generic_oauth:
+    enabled: true
+    name: Authelia OAuth
+    scopes: openid profile email groups
+    auth_url: https://auth.balutoiu.com/api/oidc/authorization
+    token_url: https://auth.balutoiu.com/api/oidc/token
+    api_url: https://auth.balutoiu.com/api/oidc/userinfo
+    use_pkce: true
+    allow_sign_up: true
+    role_attribute_path: contains(groups[*], 'grafana-admins') && 'Admin' || contains(groups[*], 'grafana-editors') && 'Editor' || contains(groups[*], 'grafana-users') && 'Viewer'
+    role_attribute_strict: true
+  server:
+    domain: grafana.internal.balutoiu.com
+    root_url: https://grafana.internal.balutoiu.com/
+
+envFromSecrets:
+  - name: monitoring-grafana-authelia-auth
+
+ingress:
+  enabled: true
+  ingressClassName: traefik-internal
+  hosts:
+    - grafana.internal.balutoiu.com
+  pathType: Prefix
+  paths:
+    - /
+
+persistence:
+  enabled: true
+  size: 512Mi
+
+sidecar:
+  resources:
+    requests:
+      cpu: 2m
+      memory: 300Mi
+    limits:
+      memory: 300Mi
+  dashboards:
+    enabled: true
+    label: grafana_dashboard
+    labelValue: "1"
+    searchNamespace: ALL
+    folderAnnotation: grafana_dashboards_folder
+    provider:
+      foldersFromFilesStructure: true
+  datasources:
+    enabled: true
+    label: grafana_datasource
+    searchNamespace: ALL
+    labelValue: "1"
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 1Gi
+  limits:
+    memory: 1Gi
