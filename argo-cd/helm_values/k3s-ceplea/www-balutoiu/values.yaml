@@ -22,7 +22,7 @@ controllers:
             memory: 128Mi
       openssh-server:
         image:
-          repository: linuxserver/openssh-server
+          repository: lscr.io/linuxserver/openssh-server
           pullPolicy: IfNotPresent
           tag: 10.0_p1-r10-ls212 # https://hub.docker.com/r/linuxserver/openssh-server
         env:

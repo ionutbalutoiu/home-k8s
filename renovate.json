@@ -18,8 +18,8 @@
       ],
       "matchPackageNames": [
         "ghcr.io/ionutbalutoiu/openvpn",
-        "linuxserver/openssh-server",
-        "linuxserver/wireguard"
+        "lscr.io/linuxserver/openssh-server",
+        "lscr.io/linuxserver/wireguard"
       ],
       "versioning": "loose"
     }
