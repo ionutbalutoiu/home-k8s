@@ -1,0 +1,232 @@
+global:
+  extraArgs:
+    - -config.expand-env=true
+  extraEnvFrom:
+    - secretRef:
+        name: monitoring-loki-s3-credentials
+
+loki:
+  podAnnotations:
+    bucketSecretVersion: "2"
+  structuredConfig:
+    ruler:
+      alertmanager_url: http://monitoring-mimir-gateway.monitoring-mimir.svc:80/alertmanager
+      external_labels:
+        alert_source: "loki"
+  storage:
+    type: s3
+    bucketNames:
+      chunks: loki-chunks
+      ruler: loki-ruler
+    s3:
+      endpoint: http://garage.garage.svc:3900
+      region: garage
+      insecure: true
+      s3forcepathstyle: true
+      access_key_id: ${AWS_ACCESS_KEY_ID}
+      secret_access_key: ${AWS_SECRET_ACCESS_KEY}
+  compactor:
+    retention_enabled: true
+    delete_request_store: s3
+  limits_config:
+    retention_period: 4w # 1 month
+    ingestion_rate_mb: 24 # default = 4 (MB)
+    ingestion_burst_size_mb: 36 # default = 6 (MB)
+  extraMemberlistConfig:
+    cluster_label: cluster.loki
+
+.monitoring_affinity: &monitoring_affinity
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - hyper-ryzen
+                - beelink-s12-pro-02
+                - beelink-s12-pro-03
+
+gateway:
+  replicas: 2
+  resources:
+    requests:
+      cpu: 5m
+      memory: 64Mi
+    limits:
+      memory: 128Mi
+  ingress:
+    enabled: true
+    ingressClassName: traefik-internal
+    hosts:
+      - host: loki.internal.balutoiu.com
+        paths:
+          - path: /
+            pathType: Prefix
+    tls: []
+  affinity: *monitoring_affinity
+
+ingester:
+  # https://grafana.com/docs/loki/v3.4.x/get-started/components/#ingester
+  replicas: 3
+  resources:
+    requests:
+      cpu: 50m
+      memory: 512Mi
+    limits:
+      memory: 1536Mi
+  zoneAwareReplication:
+    zoneA:
+      extraAffinity: *monitoring_affinity
+    zoneB:
+      extraAffinity: *monitoring_affinity
+    zoneC:
+      extraAffinity: *monitoring_affinity
+
+querier:
+  # https://grafana.com/docs/loki/v3.4.x/get-started/components/#querier
+  replicas: 3
+  maxUnavailable: 1
+  resources:
+    requests:
+      cpu: 50m
+      memory: 512Mi
+    limits:
+      memory: 1536Mi
+  persistence:
+    # NOTE: This is used for querier cache.
+    enabled: true
+    size: 10Gi
+  affinity: *monitoring_affinity
+
+queryFrontend:
+  # https://grafana.com/docs/loki/v3.4.x/get-started/components/#query-frontend
+  replicas: 2
+  maxUnavailable: 1
+  resources:
+    requests:
+      cpu: 10m
+      memory: 512Mi
+    limits:
+      memory: 1536Mi
+  affinity: *monitoring_affinity
+
+queryScheduler:
+  # https://grafana.com/docs/loki/v3.4.x/get-started/components/#query-scheduler
+  replicas: 2
+  resources:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+    limits:
+      memory: 256Mi
+  affinity: *monitoring_affinity
+
+distributor:
+  # https://grafana.com/docs/loki/v3.4.x/get-started/components/#distributor
+  replicas: 3
+  maxUnavailable: 1
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 512Mi
+  affinity: *monitoring_affinity
+
+compactor:
+  # https://grafana.com/docs/loki/v3.4.x/get-started/components/#compactor
+  # https://grafana.com/docs/loki/v3.4.x/operations/storage/retention/#compactor
+  replicas: 1
+  resources:
+    requests:
+      cpu: 10m
+      memory: 128Mi
+    limits:
+      memory: 512Mi
+  persistence:
+    # NOTE: This is used for storing compactor marker files.
+    enabled: true
+    size: 10Gi
+  affinity: *monitoring_affinity
+
+indexGateway:
+  # https://grafana.com/docs/loki/latest/get-started/components/#index-gateway
+  replicas: 2
+  maxUnavailable: 1
+  resources:
+    requests:
+      cpu: 10m
+      memory: 128Mi
+    limits:
+      memory: 512Mi
+  affinity: *monitoring_affinity
+
+ruler:
+  # https://grafana.com/docs/loki/v3.4.x/get-started/components/#ruler
+  # https://grafana.com/docs/loki/v3.4.x/alert/
+  enabled: true
+  replicas: 2
+  maxUnavailable: 1
+  resources:
+    requests:
+      cpu: 10m
+      memory: 160Mi
+    limits:
+      memory: 256Mi
+  persistence:
+    # NOTE: This is equired when using recording rules.
+    enabled: true
+    size: 1Gi
+  affinity: *monitoring_affinity
+
+resultsCache:
+  # https://grafana.com/docs/loki/v3.4.x/operations/caching/
+  replicas: 2
+  allocatedMemory: 512
+  connectionLimit: 1024
+  persistence:
+    enabled: true
+    storageSize: 10G
+  affinity: *monitoring_affinity
+
+chunksCache:
+  # https://grafana.com/docs/loki/v3.4.x/operations/caching/
+  replicas: 2
+  allocatedMemory: 2048
+  maxItemMemory: 2
+  connectionLimit: 1024
+  persistence:
+    enabled: true
+    storageSize: 10G
+  affinity: *monitoring_affinity
+
+memcachedExporter:
+  resources:
+    requests:
+      cpu: 5m
+      memory: 32Mi
+    limits:
+      memory: 128Mi
+
+monitoring:
+  dashboards:
+    enabled: true
+    annotations:
+      grafana_dashboards_folder: Loki
+    labels:
+      grafana_dashboard: "1"
+  serviceMonitor:
+    enabled: true
+  rules:
+    enabled: true
+
+# Disable "Chart Testing" settings:
+# https://github.com/grafana/loki/blob/v3.4.3/production/helm/loki/values.yaml#L631-L718
+test:
+  enabled: false
+lokiCanary:
+  enabled: false
+
+minio:
+  enabled: false
