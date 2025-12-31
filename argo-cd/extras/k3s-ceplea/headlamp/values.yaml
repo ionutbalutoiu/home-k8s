@@ -1,0 +1,24 @@
+resources:
+  limits:
+    memory: 512Mi
+  requests:
+    cpu: 5m
+    memory: 64Mi
+
+config:
+  oidc:
+    usePKCE: true
+    secret:
+      create: false
+    externalSecret:
+      enabled: true
+      name: headlamp-oidc
+
+ingress:
+  enabled: true
+  ingressClassName: traefik-internal
+  hosts:
+    - host: headlamp.internal.balutoiu.com
+      paths:
+        - path: /
+          type: Prefix
