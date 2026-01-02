@@ -1,0 +1,393 @@
+global:
+  alwaysAppendIdentifierToResourceName: true
+
+defaultPodOptions:
+  terminationGracePeriodSeconds: 5
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                  - hyper-ryzen
+                  - beelink-s12-pro-01
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          preference:
+            matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                  - hyper-ryzen
+        - weight: 90
+          preference:
+            matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                  - beelink-s12-pro-01
+
+controllers:
+  frigate:
+    strategy: Recreate
+    initContainers:
+      init-config:
+        image:
+          repository: busybox
+          pullPolicy: IfNotPresent
+          tag: 1.37.0
+        command:
+          - cp
+        args:
+          - /config.yml
+          - /config/config.yml
+    containers:
+      frigate:
+        image:
+          repository: ghcr.io/blakeblackshear/frigate
+          pullPolicy: IfNotPresent
+          tag: 0.16.3
+        envFrom:
+          - secretRef:
+              name: frigate-secrets
+        securityContext:
+          privileged: true
+
+  wg-proxy:
+    strategy: Recreate
+    containers:
+      main:
+        image: &wg_image
+          repository: lscr.io/linuxserver/wireguard
+          pullPolicy: IfNotPresent
+          tag: 1.0.20250521
+        env:
+          TZ: Europe/Bucharest
+          PUID: 0
+          PGID: 0
+        securityContext:
+          capabilities:
+            add:
+              - NET_ADMIN
+        probes:
+          readiness: &healthcheck_probe_spec
+            enabled: true
+            custom: true
+            spec:
+              initialDelaySeconds: 5
+              exec:
+                command:
+                  - /bin/ping
+                  - -c
+                  - "1"
+                  - "192.168.99.1"
+          liveness: *healthcheck_probe_spec
+        resources:
+          requests:
+            cpu: 10m
+            memory: 256Mi
+          limits:
+            memory: 256Mi
+    initContainers:
+      setup-dnat:
+        image: *wg_image
+        command:
+          - /bin/sh
+        args:
+          - /wg-proxy-dnat/setup.sh
+        securityContext:
+          privileged: true
+        resources:
+          requests:
+            cpu: 1m
+            memory: 64Mi
+          limits:
+            memory: 64Mi
+
+service:
+  frigate:
+    controller: frigate
+    type: LoadBalancer
+    ports:
+      http:
+        port: 5000
+  wg-proxy:
+    controller: wg-proxy
+    type: ClusterIP
+    ports:
+      camera1:
+        protocol: TCP
+        port: 5541
+      camera2:
+        protocol: TCP
+        port: 5542
+      camera3:
+        protocol: TCP
+        port: 5543
+      camera4:
+        protocol: TCP
+        port: 5544
+
+ingress:
+  frigate:
+    className: traefik-external
+    annotations:
+      traefik.ingress.kubernetes.io/router.middlewares: authelia-forwardauth-authelia@kubernetescrd
+    hosts:
+      - host: frigate.balutoiu.com
+        paths:
+          - path: /
+            pathType: Prefix
+            service:
+              identifier: frigate
+              port: http
+
+configMaps:
+  config:
+    data:
+      config.yml: |
+        version: 0.16-0
+
+        mqtt:
+          enabled: false
+
+        detectors:
+          cpu:
+            type: cpu
+
+        logger:
+          default: info
+
+        detect:
+          enabled: false
+          # NOTE: The settings below apply for the live cameras feed.
+          width: 1280
+          height: 720
+          fps: 15
+
+        ffmpeg:
+          hwaccel_args: preset-vaapi
+          output_args:
+            record: preset-record-generic-audio-aac
+
+        birdseye:
+          enabled: true
+          width: 1920
+          height: 1080
+          quality: 8
+          mode: continuous
+
+        record:
+          enabled: true
+          retain:
+            days: 14
+            mode: all
+
+        cameras:
+          1ceplea_poarta:
+            detect:
+              enabled: false
+            ffmpeg:
+              inputs:
+                - path: rtsp://{FRIGATE_CEPLEA_POARTA_USER}:{FRIGATE_CEPLEA_POARTA_PASSWORD}@10.101.101.173:554//stream1
+                  roles:
+                    - record
+          2ceplea_poarta_tataie:
+            detect:
+              enabled: false
+            ffmpeg:
+              inputs:
+                - path: rtsp://{FRIGATE_CEPLEA_POARTA_TATAIE_USER}:{FRIGATE_CEPLEA_POARTA_TATAIE_PASSWORD}@10.101.101.136:554//stream1
+                  roles:
+                    - record
+          3ceplea_tataie_gaini:
+            detect:
+              enabled: false
+            ffmpeg:
+              inputs:
+                - path: rtsp://{FRIGATE_CEPLEA_TATAIE_GAINI_USER}:{FRIGATE_CEPLEA_TATAIE_GAINI_PASSWORD}@10.101.101.41:554//stream1
+                  roles:
+                    - record
+          4ceplea_curte_fata:
+            detect:
+              enabled: false
+            ffmpeg:
+              inputs:
+                - path: rtsp://{FRIGATE_CEPLEA_CURTE_FATA_USER}:{FRIGATE_CEPLEA_CURTE_FATA_PASSWORD}@10.101.101.253:554//stream1
+                  roles:
+                    - record
+          5ceplea_curte_spate:
+            detect:
+              enabled: false
+            ffmpeg:
+              inputs:
+                - path: rtsp://{FRIGATE_CEPLEA_CURTE_SPATE_USER}:{FRIGATE_CEPLEA_CURTE_SPATE_PASSWORD}@10.102.102.81:554//stream1
+                  roles:
+                    - record
+          6ceplea_gradina:
+            detect:
+              enabled: false
+            ffmpeg:
+              inputs:
+                - path: rtsp://{FRIGATE_CEPLEA_GRADINA_USER}:{FRIGATE_CEPLEA_GRADINA_PASSWORD}@10.101.101.102:554//stream1
+                  roles:
+                    - record
+          7floresti_poarta:
+            detect:
+              enabled: false
+            ffmpeg:
+              inputs:
+                - path: rtsp://{FRIGATE_FLORESTI_POARTA_USER}:{FRIGATE_FLORESTI_POARTA_PASSWORD}@frigate-wg-proxy.frigate.svc.cluster.local:5541//stream1
+                  roles:
+                    - record
+          8floresti_curte_fata:
+            detect:
+              enabled: false
+            ffmpeg:
+              inputs:
+                - path: rtsp://{FRIGATE_FLORESTI_CURTE_FATA_USER}:{FRIGATE_FLORESTI_CURTE_FATA_PASSWORD}@frigate-wg-proxy.frigate.svc.cluster.local:5542//stream1
+                  roles:
+                    - record
+          9floresti_gaini:
+            detect:
+              enabled: false
+            ffmpeg:
+              inputs:
+                - path: rtsp://{FRIGATE_FLORESTI_GAINI_USER}:{FRIGATE_FLORESTI_GAINI_PASSWORD}@frigate-wg-proxy.frigate.svc.cluster.local:5543//stream1
+                  roles:
+                    - record
+
+        camera_groups:
+          Birdseye:
+            order: 1
+            icon: LuWatch
+            cameras: birdseye
+          Ceplea:
+            order: 2
+            icon: LuWarehouse
+            cameras:
+              - 1ceplea_poarta
+              - 2ceplea_poarta_tataie
+              - 3ceplea_tataie_gaini
+              - 4ceplea_curte_fata
+              - 5ceplea_curte_spate
+              - 6ceplea_gradina
+          Floresti:
+            order: 3
+            icon: LuHome
+            cameras:
+              - 7floresti_poarta
+              - 8floresti_curte_fata
+              - 9floresti_gaini
+
+  wg-proxy-dnat:
+    data:
+      setup.sh: |
+        #!/bin/sh
+        set -e
+
+        apk add -q --no-cache iptables yq
+
+        echo "Setting up DNAT iptables rules..."
+        DEFAULT_IFACE=$(ip route show default | awk '/default/ {print $5}')
+        for PORT_FORWARD in $(cat /wg-proxy-dnat/config.yaml | yq '.[] | "\(.remote_ip)|\(.remote_port)|\(.local_port)|\(.protocol)"'); do
+            REMOTE_IP=$(echo $PORT_FORWARD | cut -d '|' -f 1)
+            REMOTE_PORT=$(echo $PORT_FORWARD | cut -d '|' -f 2)
+            LOCAL_PORT=$(echo $PORT_FORWARD | cut -d '|' -f 3)
+            PROTOCOL=$(echo $PORT_FORWARD | cut -d '|' -f 4)
+
+            echo "Port forwarding from remote $REMOTE_IP:$REMOTE_PORT to local 0.0.0.0:$LOCAL_PORT using protocol $PROTOCOL"
+            iptables -t nat -A PREROUTING -i $DEFAULT_IFACE -p $PROTOCOL --dport $LOCAL_PORT -j DNAT --to-destination ${REMOTE_IP}:${REMOTE_PORT}
+            iptables -t nat -A POSTROUTING -p $PROTOCOL -d $REMOTE_IP --dport $REMOTE_PORT -j MASQUERADE
+        done
+
+      config.yaml: |
+        - remote_ip: 192.168.99.2
+          remote_port: 5541
+          local_port: 5541
+          protocol: tcp
+
+        - remote_ip: 192.168.99.2
+          remote_port: 5542
+          local_port: 5542
+          protocol: tcp
+
+        - remote_ip: 192.168.99.2
+          remote_port: 5543
+          local_port: 5543
+          protocol: tcp
+
+        - remote_ip: 192.168.99.2
+          remote_port: 5544
+          local_port: 5544
+          protocol: tcp
+
+persistence:
+  dshm:
+    type: emptyDir
+    medium: Memory
+    sizeLimit: 1Gi
+    advancedMounts:
+      frigate:
+        frigate:
+          - path: /dev/shm
+
+  tmp-cache:
+    type: emptyDir
+    medium: Memory
+    sizeLimit: 1Gi
+    advancedMounts:
+      frigate:
+        frigate:
+          - path: /tmp/cache
+
+  media:
+    type: hostPath
+    hostPath: /storage/frigate/media
+    advancedMounts:
+      frigate:
+        frigate:
+          - path: /media/frigate
+
+  config:
+    type: configMap
+    identifier: config
+    advancedMounts:
+      frigate:
+        init-config:
+          - path: /config.yml
+            readOnly: true
+            subPath: config.yml
+
+  database:
+    type: persistentVolumeClaim
+    accessMode: ReadWriteOnce
+    storageClass: longhorn-2r
+    size: 3Gi
+    advancedMounts:
+      frigate:
+        init-config:
+          - path: /config
+        frigate:
+          - path: /config
+
+  wg-proxy-peer-conf:
+    type: secret
+    name: wg-proxy-peer-conf
+    defaultMode: 0600
+    advancedMounts:
+      wg-proxy:
+        main:
+          - path: /config/wg_confs/wg0.conf
+            subPath: peer_CepleaFrigate.conf
+            readOnly: true
+
+  wg-proxy-dnat:
+    type: configMap
+    identifier: wg-proxy-dnat
+    advancedMounts:
+      wg-proxy:
+        setup-dnat:
+          - path: /wg-proxy-dnat
