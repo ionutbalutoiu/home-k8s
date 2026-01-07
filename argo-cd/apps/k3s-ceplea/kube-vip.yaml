@@ -10,7 +10,7 @@ spec:
   sources:
     - chart: kube-vip
       repoURL: https://kube-vip.github.io/helm-charts
-      targetRevision: 0.9.3
+      targetRevision: 0.9.5
       helm:
         valueFiles:
           - $values/argo-cd/helm_values/k3s-ceplea/kube-vip/values.yaml
