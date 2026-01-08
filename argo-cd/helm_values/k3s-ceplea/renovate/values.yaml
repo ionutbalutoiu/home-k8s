@@ -1,6 +1,6 @@
 cronjob:
   timeZone: Etc/GMT+2 # Bucharest Timezone
-  schedule: "0 * * * *" # Every hour
+  schedule: "0 3,15 * * *" # At 03:00 and 15:00 daily
 
 renovate:
   config: |
