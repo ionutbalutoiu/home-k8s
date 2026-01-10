@@ -116,10 +116,7 @@ configMaps:
       default.conf: |
         server {
             listen 80;
-            listen [::]:80;
             server_name files.balutoiu.com;
-
-            root /files;
 
             # Exact root path: return "ok"
             location = / {
@@ -129,6 +126,7 @@ configMaps:
 
             # Serve static files from /
             location / {
+                alias /files/internal/;
                 try_files $uri =404;
             }
 
@@ -149,32 +147,43 @@ configMaps:
 
         server {
             listen 80;
-            listen [::]:80;
             server_name files.internal.balutoiu.com;
 
-            root /files;
+            # Serve the SPA under /ui/
+            location /ui/ {
+                alias /files/dist/;
+                try_files $uri $uri/ /ui/index.html;
+            }
 
-            # Serve static files from / with directory listing enabled
-            location / {
+            # Serve directory listings under /files/
+            location /files/ {
+                alias /files/internal/;
+
+                # Enable autoindex with JSON format
                 autoindex on;
-                autoindex_exact_size off;
-                autoindex_localtime on;
+                autoindex_format json;
 
-                try_files $uri $uri/ =404;
+                # Ensure proper content type for JSON responses
+                default_type application/json;
             }
 
             # Static 404 response
             error_page 404 = @not_found;
             location @not_found {
-                default_type text/plain;
-                return 404 "404 Not Found\n";
+                default_type application/json;
+                return 404 '{"error":"404 Not Found"}';
             }
 
             # Static 5xx response
             error_page 500 502 503 504 = @internal_error;
             location @internal_error {
-                default_type text/plain;
-                return 500 "Internal Server Error\n";
+                default_type application/json;
+                return 500 '{"error":"Internal Server Error"}';
+            }
+
+            # Redirect root to /ui/
+            location = / {
+                return 302 /ui/;
             }
         }
 
