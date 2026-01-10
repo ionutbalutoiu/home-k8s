@@ -1,0 +1,11 @@
+---
+apiVersion: externaldns.k8s.io/v1alpha1
+kind: DNSEndpoint
+metadata:
+  name: gh-pages-ionut-balutoiu-com
+spec:
+  endpoints:
+    - dnsName: ionut.balutoiu.com
+      recordType: CNAME
+      targets:
+        - ionutbalutoiu.github.io
