@@ -32,13 +32,16 @@ ports:
 
 gateway:
   listeners:
-    web:
+    web: &web_listener
       port: 8000
       hostname: "*.balutoiu.com"
       protocol: HTTP
       namespacePolicy:
         from: Same
-    websecure:
+    web-root:
+      <<: *web_listener
+      hostname: "balutoiu.com"
+    websecure: &websecure_listener
       port: 8443
       hostname: "*.balutoiu.com"
       protocol: HTTPS
@@ -46,6 +49,9 @@ gateway:
         from: All
       certificateRefs:
         - name: le-wildcard-balutoiu-com-tls
+    websecure-root:
+      <<: *websecure_listener
+      hostname: "balutoiu.com"
 
 ingressClass:
   enabled: true
