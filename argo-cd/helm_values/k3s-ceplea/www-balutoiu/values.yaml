@@ -126,7 +126,7 @@ configMaps:
 
             # Serve static files from /
             location / {
-                alias /files/internal/;
+                alias /storage/files/;
                 try_files $uri =404;
             }
 
@@ -151,13 +151,13 @@ configMaps:
 
             # Serve the SPA under /ui/
             location /ui/ {
-                alias /files/dist/;
+                alias /storage/dist/;
                 try_files $uri $uri/ /ui/index.html;
             }
 
-            # Serve directory listings under /files/
+            # Serve directory listings under /storage/files/
             location /files/ {
-                alias /files/internal/;
+                alias /storage/files/;
 
                 # Enable autoindex with JSON format
                 autoindex on;
@@ -200,7 +200,7 @@ persistence:
     storageClass: longhorn-2r
     size: 5Gi
     globalMounts:
-      - path: /files
+      - path: /storage
 
   nginx-confs:
     type: configMap
