@@ -61,19 +61,123 @@ service:
         protocol: TCP
         targetPort: 2222
 
-ingress:
-  www-balutoiu:
-    className: traefik-external
-    hosts:
-      - host: balutoiu.com
-        paths:
-          - path: /
-            pathType: Prefix
-            service:
-              identifier: nginx
-              port: http
+route:
+  root:
+    parentRefs:
+      - name: traefik-gateway
+        namespace: traefik-external
+    hostnames:
+      - balutoiu.com
+    rules:
+      - name: redirect-to-ionut
+        matches:
+          - path:
+              type: PathPrefix
+              value: /
+        filters:
+          - type: RequestRedirect
+            requestRedirect:
+              hostname: ionut.balutoiu.com
+              port: 443
+              scheme: https
+              statusCode: 301
+  files-external:
+    parentRefs:
+      - name: traefik-gateway
+        namespace: traefik-external
+    hostnames:
+      - files.balutoiu.com
+    rules:
+      - name: files-external
+        matches:
+          - path:
+              type: PathPrefix
+              value: /
+        backendRefs:
+          - identifier: nginx
+  files-internal:
+    parentRefs:
+      - name: traefik-gateway
+        namespace: traefik-internal
+    hostnames:
+      - files.internal.balutoiu.com
+    rules:
+      - name: files-internal
+        matches:
+          - path:
+              type: PathPrefix
+              value: /
+        backendRefs:
+          - identifier: nginx
 
 configMaps:
+  nginx-confs:
+    data:
+      default.conf: |
+        server {
+            listen 80;
+            listen [::]:80;
+            server_name files.balutoiu.com;
+
+            root /files;
+
+            # Exact root path: return "ok"
+            location = / {
+                default_type text/plain;
+                return 200 "ok\n";
+            }
+
+            # Serve static files from /
+            location / {
+                try_files $uri =404;
+            }
+
+            # Static 404 response
+            error_page 404 = @not_found;
+            location @not_found {
+                default_type text/plain;
+                return 404 "404 Not Found\n";
+            }
+
+            # Static 5xx response
+            error_page 500 502 503 504 = @internal_error;
+            location @internal_error {
+                default_type text/plain;
+                return 500 "Internal Server Error\n";
+            }
+        }
+
+        server {
+            listen 80;
+            listen [::]:80;
+            server_name files.internal.balutoiu.com;
+
+            root /files;
+
+            # Serve static files from / with directory listing enabled
+            location / {
+                autoindex on;
+                autoindex_exact_size off;
+                autoindex_localtime on;
+
+                try_files $uri $uri/ =404;
+            }
+
+            # Static 404 response
+            error_page 404 = @not_found;
+            location @not_found {
+                default_type text/plain;
+                return 404 "404 Not Found\n";
+            }
+
+            # Static 5xx response
+            error_page 500 502 503 504 = @internal_error;
+            location @internal_error {
+                default_type text/plain;
+                return 500 "Internal Server Error\n";
+            }
+        }
+
   ssh-pub-keys:
     data:
       iony-mba: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCYdmNB3np8OLc49B4cAh59CdNYIb4fAq2XBQ1sbOZMMZmhpFobyy+i6s4lBnovMNWAB6HmpsECHrKRU4IFl9lQ7vV+++J08SLoAkl6G0Gk9tmbgEs+/ovCZg+qUfZA1ZccSAPHmtqfZOiJcnlIlhQq2BoFnLUwmpeIQ4H5D+Y2q7DMdyGkdCenH80aD5KuiwLIyiBL9q7RYz0U5cdCO3wDFU4+5XuZiT8VYDUgp3mWPpAiPdGsJmCn41tpt3PViPDQlKh4vLW0ieQUJI/v2f6oHbM9YkxSoVlwLcrjTv+Nl+dVymqVTF4UaT1kz+ZnoH6khKZxSHvKm9YHc4LNZKYoVdyCxdZvBfxbEbXpT702vLqDNGEfZSlzJs5kVqP30m8fI/yzTQeD7tgjzzrKWdLZacyo+9cWeH6nFfZAQuZ9ug1lv3UAs5x6MsidEH5u6Iymi8BE+mUsOXnSpSfUDDo5n6+CMVe93brdW21iSX9Hbuz5RKB6xile1ROHpvpi1u7VQ9Hp3FIZFFiix9S5jniyB2OqjGKTO6RULfPsJo8sXCLq9YKq9zrkpMv5wURMQKnjtS5OHUWh0cde3U/VikPIfLkzEsfLV8ICAksyuWHQJGVUMxhPmSTKtRsPScbklekT+n65rexDt4Qr73YOy9BUIPV4Mo+kkl4ugQd6VCKJ6w==
@@ -86,12 +190,17 @@ persistence:
     accessMode: ReadWriteOnce
     storageClass: longhorn-2r
     size: 5Gi
+    globalMounts:
+      - path: /files
+
+  nginx-confs:
+    type: configMap
+    identifier: nginx-confs
     advancedMounts:
       www-balutoiu:
         nginx:
-          - path: /usr/share/nginx/html
-        openssh-server:
-          - path: /files
+          - path: /etc/nginx/conf.d
+            readOnly: true
 
   ssh-config:
     type: persistentVolumeClaim
