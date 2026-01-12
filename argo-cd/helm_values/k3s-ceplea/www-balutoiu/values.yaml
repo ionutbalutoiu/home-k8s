@@ -45,7 +45,7 @@ controllers:
         image:
           repository: ghcr.io/ionutbalutoiu/files-browser-backend
           pullPolicy: IfNotPresent
-          tag: 0.3.0
+          tag: 0.4.0
         env:
           UPLOAD_BASE_DIR: /storage/files
         resources:
@@ -210,6 +210,18 @@ configMaps:
 
             # Delete endpoint - proxy to Go service
             location /delete/ {
+                # Proxy to file service
+                proxy_pass http://127.0.0.1:8080;
+
+                # Required headers
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $scheme;
+            }
+
+            # Mkdir endpoint - proxy to Go service
+            location /mkdir/ {
                 # Proxy to file service
                 proxy_pass http://127.0.0.1:8080;
 
