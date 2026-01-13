@@ -45,7 +45,7 @@ controllers:
         image:
           repository: ghcr.io/ionutbalutoiu/files-browser-backend
           pullPolicy: IfNotPresent
-          tag: 0.5.0
+          tag: 0.6.0
         env:
           FILES_SVC_UPLOAD_BASE_DIR: /storage/files
         resources:
