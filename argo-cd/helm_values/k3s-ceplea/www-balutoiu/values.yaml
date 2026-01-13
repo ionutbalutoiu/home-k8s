@@ -144,7 +144,7 @@ configMaps:
 
             # Serve static files from /
             location / {
-                alias /storage/files/;
+                alias /storage/files-public/;
                 try_files $uri =404;
             }
 
