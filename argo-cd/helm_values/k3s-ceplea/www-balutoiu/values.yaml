@@ -45,9 +45,10 @@ controllers:
         image:
           repository: ghcr.io/ionutbalutoiu/files-browser-backend
           pullPolicy: IfNotPresent
-          tag: 0.6.0
+          tag: 0.7.0
         env:
           FILES_SVC_UPLOAD_BASE_DIR: /storage/files
+          FILES_SVC_PUBLIC_BASE_DIR: /storage/files-public
         resources:
           requests:
             cpu: 5m
@@ -172,8 +173,13 @@ configMaps:
                 try_files $uri $uri/ /ui/index.html;
             }
 
+            # Redirect root to /ui/
+            location = / {
+                return 302 /ui/;
+            }
+
             # Serve directory listings under /storage/files/
-            location /files/ {
+            location /api/files/ {
                 alias /storage/files/;
 
                 # Enable autoindex with JSON format
@@ -184,8 +190,8 @@ configMaps:
                 default_type application/json;
             }
 
-            # Upload endpoint - proxy to Go service
-            location /upload/ {
+            # Proxy endpoints -> Go service
+            location /api/ {
                 # Proxy to file service
                 proxy_pass http://127.0.0.1:8080;
 
@@ -208,30 +214,6 @@ configMaps:
                 send_timeout 300;
             }
 
-            # Delete endpoint - proxy to Go service
-            location /delete/ {
-                # Proxy to file service
-                proxy_pass http://127.0.0.1:8080;
-
-                # Required headers
-                proxy_set_header Host $host;
-                proxy_set_header X-Real-IP $remote_addr;
-                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-                proxy_set_header X-Forwarded-Proto $scheme;
-            }
-
-            # Mkdir endpoint - proxy to Go service
-            location /mkdir/ {
-                # Proxy to file service
-                proxy_pass http://127.0.0.1:8080;
-
-                # Required headers
-                proxy_set_header Host $host;
-                proxy_set_header X-Real-IP $remote_addr;
-                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-                proxy_set_header X-Forwarded-Proto $scheme;
-            }
-
             # Static 404 response
             error_page 404 = @not_found;
             location @not_found {
@@ -244,11 +226,6 @@ configMaps:
             location @internal_error {
                 default_type application/json;
                 return 500 '{"error":"Internal Server Error"}';
-            }
-
-            # Redirect root to /ui/
-            location = / {
-                return 302 /ui/;
             }
         }
 
