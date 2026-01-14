@@ -72,7 +72,7 @@ service:
     type: LoadBalancer
     primary: false
     annotations:
-      external-dns.alpha.kubernetes.io/hostname: www-balutoiu.internal.balutoiu.com
+      external-dns.alpha.kubernetes.io/hostname: www-balutoiu-demo.internal.balutoiu.com
     ports:
       ssh:
         port: 22
@@ -80,47 +80,14 @@ service:
         targetPort: 2222
 
 route:
-  root:
-    parentRefs:
-      - name: traefik-gateway
-        namespace: traefik-external
-    hostnames:
-      - balutoiu.com
-    rules:
-      - name: redirect-to-ionut
-        matches:
-          - path:
-              type: PathPrefix
-              value: /
-        filters:
-          - type: RequestRedirect
-            requestRedirect:
-              hostname: ionut.balutoiu.com
-              port: 443
-              scheme: https
-              statusCode: 301
   files-external:
     parentRefs:
       - name: traefik-gateway
         namespace: traefik-external
     hostnames:
-      - files.balutoiu.com
+      - files-demo.balutoiu.com
     rules:
       - name: files-external
-        matches:
-          - path:
-              type: PathPrefix
-              value: /
-        backendRefs:
-          - identifier: nginx
-  files-internal:
-    parentRefs:
-      - name: traefik-gateway
-        namespace: traefik-internal
-    hostnames:
-      - files.internal.balutoiu.com
-    rules:
-      - name: files-internal
         matches:
           - path:
               type: PathPrefix
@@ -134,38 +101,7 @@ configMaps:
       default.conf: |
         server {
             listen 80;
-            server_name files.balutoiu.com;
-
-            # Exact root path: return "ok"
-            location = / {
-                default_type text/plain;
-                return 200 "ok\n";
-            }
-
-            # Serve static files from /
-            location / {
-                alias /storage/files-public/;
-                try_files $uri =404;
-            }
-
-            # Static 404 response
-            error_page 404 = @not_found;
-            location @not_found {
-                default_type text/plain;
-                return 404 "404 Not Found\n";
-            }
-
-            # Static 5xx response
-            error_page 500 502 503 504 = @internal_error;
-            location @internal_error {
-                default_type text/plain;
-                return 500 "Internal Server Error\n";
-            }
-        }
-
-        server {
-            listen 80;
-            server_name files.internal.balutoiu.com;
+            server_name files-demo.balutoiu.com;
 
             # Serve the SPA under /ui/
             location /ui/ {
