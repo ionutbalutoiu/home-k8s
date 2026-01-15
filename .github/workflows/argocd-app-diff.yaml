@@ -28,7 +28,7 @@ jobs:
           # renovate: datasource=github-releases depName=argocd-cli packageName=argoproj/argo-cd
           ARGOCD_VERSION: v3.2.5
           # renovate: datasource=github-releases depName=gh packageName=cli/cli
-          GH_VERSION: v2.83.2
+          GH_VERSION: v2.85.0
           # renovate: datasource=github-releases depName=yq packageName=mikefarah/yq
           YQ_VERSION: v4.50.1
         run: |
