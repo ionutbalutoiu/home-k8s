@@ -10,7 +10,7 @@ spec:
   source:
     chart: traefik-crds
     repoURL: https://helm.traefik.io/traefik
-    targetRevision: 1.13.1
+    targetRevision: 1.14.0
   destination:
     server: https://kubernetes.default.svc
   syncPolicy:
