@@ -10,7 +10,7 @@ spec:
   sources:
     - path: script/helm/garage
       repoURL: https://git.deuxfleurs.fr/Deuxfleurs/garage.git
-      targetRevision: v2.1.0
+      targetRevision: v2.2.0
       helm:
         valueFiles:
           - $values/argo-cd/helm_values/k3s-ceplea/garage/values.yaml
