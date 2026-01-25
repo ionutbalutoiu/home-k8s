@@ -14,14 +14,16 @@ ports:
     port: 9443
     expose:
       default: true
-    tls:
-      enabled: true
+    http:
+      tls:
+        enabled: true
   web:
-    redirections:
-      entryPoint:
-        to: websecure
-        scheme: https
-        permanent: true
+    http:
+      redirections:
+        entryPoint:
+          to: websecure
+          scheme: https
+          permanent: true
   websecure:
     asDefault: true
 
