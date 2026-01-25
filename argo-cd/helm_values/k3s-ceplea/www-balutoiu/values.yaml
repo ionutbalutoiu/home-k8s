@@ -45,7 +45,7 @@ controllers:
         image:
           repository: ghcr.io/ionutbalutoiu/files-browser-backend
           pullPolicy: IfNotPresent
-          tag: 0.8.0
+          tag: 0.9.0
         env:
           FILES_SVC_UPLOAD_BASE_DIR: /storage/files
           FILES_SVC_PUBLIC_BASE_DIR: /storage/files-public
@@ -179,7 +179,7 @@ configMaps:
             }
 
             # Serve directory listings under /storage/files/
-            location /api/files/ {
+            location /files/ {
                 alias /storage/files/;
 
                 # Enable autoindex with JSON format
