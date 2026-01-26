@@ -4,11 +4,11 @@ global:
 controllers:
   www-balutoiu:
     containers:
-      nginx:
+      files-browser-frontend:
         image:
-          repository: docker.io/nginx
+          repository: ghcr.io/ionutbalutoiu/files-browser-frontend
           pullPolicy: IfNotPresent
-          tag: 1.29.4 # https://hub.docker.com/_/nginx
+          tag: 0.2.0
         probes:
           readiness:
             enabled: true
@@ -20,6 +20,28 @@ controllers:
             memory: 128Mi
           limits:
             memory: 128Mi
+        ports:
+          - containerPort: 80
+            name: http
+            protocol: TCP
+      files-browser-backend:
+        image:
+          repository: ghcr.io/ionutbalutoiu/files-browser-backend
+          pullPolicy: IfNotPresent
+          tag: 0.11.0
+        env:
+          FILES_SVC_BASE_DIR: /storage/files
+          FILES_SVC_PUBLIC_BASE_DIR: /storage/files-public
+        resources:
+          requests:
+            cpu: 5m
+            memory: 512Mi
+          limits:
+            memory: 512Mi
+        ports:
+          - containerPort: 8080
+            name: http
+            protocol: TCP
       openssh-server:
         image:
           repository: lscr.io/linuxserver/openssh-server
@@ -41,33 +63,15 @@ controllers:
           - containerPort: 2222
             name: ssh
             protocol: TCP
-      files-browser-backend:
-        image:
-          repository: ghcr.io/ionutbalutoiu/files-browser-backend
-          pullPolicy: IfNotPresent
-          tag: 0.11.0
-        env:
-          FILES_SVC_BASE_DIR: /storage/files
-          FILES_SVC_PUBLIC_BASE_DIR: /storage/files-public
-        resources:
-          requests:
-            cpu: 5m
-            memory: 512Mi
-          limits:
-            memory: 512Mi
-        ports:
-          - containerPort: 8080
-            name: http
-            protocol: TCP
 
 service:
-  nginx:
+  files-browser-frontend:
     controller: www-balutoiu
     primary: true
     ports:
       http:
         port: 80
-  ssh:
+  openssh-server:
     controller: www-balutoiu
     type: LoadBalancer
     primary: false
@@ -112,7 +116,7 @@ route:
               type: PathPrefix
               value: /
         backendRefs:
-          - identifier: nginx
+          - identifier: files-browser-frontend
   files-internal:
     parentRefs:
       - name: traefik-gateway
@@ -126,109 +130,9 @@ route:
               type: PathPrefix
               value: /
         backendRefs:
-          - identifier: nginx
+          - identifier: files-browser-frontend
 
 configMaps:
-  nginx-confs:
-    data:
-      default.conf: |
-        server {
-            listen 80;
-            server_name files.balutoiu.com;
-
-            # Exact root path: return "ok"
-            location = / {
-                default_type text/plain;
-                return 200 "ok\n";
-            }
-
-            # Serve static files from /
-            location / {
-                alias /storage/files-public/;
-                try_files $uri =404;
-            }
-
-            # Static 404 response
-            error_page 404 = @not_found;
-            location @not_found {
-                default_type text/plain;
-                return 404 "404 Not Found\n";
-            }
-
-            # Static 5xx response
-            error_page 500 502 503 504 = @internal_error;
-            location @internal_error {
-                default_type text/plain;
-                return 500 "Internal Server Error\n";
-            }
-        }
-
-        server {
-            listen 80;
-            server_name files.internal.balutoiu.com;
-
-            # Serve the SPA under /ui/
-            location /ui/ {
-                alias /storage/dist/;
-                try_files $uri $uri/ /ui/index.html;
-            }
-
-            # Redirect root to /ui/
-            location = / {
-                return 302 /ui/;
-            }
-
-            # Serve directory listings under /storage/files/
-            location /files/ {
-                alias /storage/files/;
-
-                # Enable autoindex with JSON format
-                autoindex on;
-                autoindex_format json;
-
-                # Ensure proper content type for JSON responses
-                default_type application/json;
-            }
-
-            # Proxy endpoints -> Go service
-            location /api/ {
-                # Proxy to file service
-                proxy_pass http://127.0.0.1:8080;
-
-                # Required headers
-                proxy_set_header Host $host;
-                proxy_set_header X-Real-IP $remote_addr;
-                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-                proxy_set_header X-Forwarded-Proto $scheme;
-
-                # Disable buffering for streaming uploads
-                proxy_request_buffering off;
-
-                # Maximum upload size (must match or exceed Go service's -max-size)
-                client_max_body_size 2G;
-
-                # Increase timeouts for large uploads
-                proxy_connect_timeout 300;
-                proxy_send_timeout 300;
-                proxy_read_timeout 300;
-                send_timeout 300;
-            }
-
-            # Static 404 response
-            error_page 404 = @not_found;
-            location @not_found {
-                default_type application/json;
-                return 404 '{"error":"404 Not Found"}';
-            }
-
-            # Static 5xx response
-            error_page 500 502 503 504 = @internal_error;
-            location @internal_error {
-                default_type application/json;
-                return 500 '{"error":"Internal Server Error"}';
-            }
-        }
-
   ssh-pub-keys:
     data:
       iony-mba: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCYdmNB3np8OLc49B4cAh59CdNYIb4fAq2XBQ1sbOZMMZmhpFobyy+i6s4lBnovMNWAB6HmpsECHrKRU4IFl9lQ7vV+++J08SLoAkl6G0Gk9tmbgEs+/ovCZg+qUfZA1ZccSAPHmtqfZOiJcnlIlhQq2BoFnLUwmpeIQ4H5D+Y2q7DMdyGkdCenH80aD5KuiwLIyiBL9q7RYz0U5cdCO3wDFU4+5XuZiT8VYDUgp3mWPpAiPdGsJmCn41tpt3PViPDQlKh4vLW0ieQUJI/v2f6oHbM9YkxSoVlwLcrjTv+Nl+dVymqVTF4UaT1kz+ZnoH6khKZxSHvKm9YHc4LNZKYoVdyCxdZvBfxbEbXpT702vLqDNGEfZSlzJs5kVqP30m8fI/yzTQeD7tgjzzrKWdLZacyo+9cWeH6nFfZAQuZ9ug1lv3UAs5x6MsidEH5u6Iymi8BE+mUsOXnSpSfUDDo5n6+CMVe93brdW21iSX9Hbuz5RKB6xile1ROHpvpi1u7VQ9Hp3FIZFFiix9S5jniyB2OqjGKTO6RULfPsJo8sXCLq9YKq9zrkpMv5wURMQKnjtS5OHUWh0cde3U/VikPIfLkzEsfLV8ICAksyuWHQJGVUMxhPmSTKtRsPScbklekT+n65rexDt4Qr73YOy9BUIPV4Mo+kkl4ugQd6VCKJ6w==
@@ -243,15 +147,6 @@ persistence:
     size: 5Gi
     globalMounts:
       - path: /storage
-
-  nginx-confs:
-    type: configMap
-    identifier: nginx-confs
-    advancedMounts:
-      www-balutoiu:
-        nginx:
-          - path: /etc/nginx/conf.d
-            readOnly: true
 
   ssh-config:
     type: persistentVolumeClaim
