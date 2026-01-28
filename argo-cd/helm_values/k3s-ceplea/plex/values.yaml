@@ -16,7 +16,7 @@ controllers:
         image:
           repository: lscr.io/linuxserver/plex
           pullPolicy: IfNotPresent
-          tag: 1.42.2 # https://hub.docker.com/r/linuxserver/plex/tags
+          tag: 1.43.0 # https://hub.docker.com/r/linuxserver/plex/tags
         env:
           TZ: Europe/Bucharest
           PUID: 0
