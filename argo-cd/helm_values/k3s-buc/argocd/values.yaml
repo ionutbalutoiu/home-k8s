@@ -89,7 +89,7 @@ repoServer:
       name: helm-secrets-private-keys
   initContainers:
     - name: download-tools
-      image: alpine:3.23.2
+      image: alpine:3.23.3
       imagePullPolicy: IfNotPresent
       command: [sh, -ec]
       env:
