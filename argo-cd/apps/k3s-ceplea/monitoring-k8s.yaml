@@ -10,7 +10,7 @@ spec:
   sources:
     - chart: k8s-monitoring
       repoURL: https://grafana.github.io/helm-charts
-      targetRevision: 3.7.4
+      targetRevision: 3.7.5
       helm:
         valueFiles:
           - $values/argo-cd/helm_values/k3s-ceplea/monitoring-k8s/values.yaml
