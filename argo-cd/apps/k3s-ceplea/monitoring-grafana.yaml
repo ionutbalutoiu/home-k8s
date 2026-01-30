@@ -9,8 +9,8 @@ spec:
   project: default
   sources:
     - chart: grafana
-      repoURL: https://grafana.github.io/helm-charts
-      targetRevision: 10.5.14
+      repoURL: https://github.com/grafana-community/helm-charts
+      targetRevision: 11.0.0
       helm:
         valueFiles:
           - $values/argo-cd/helm_values/k3s-ceplea/monitoring-grafana/values.yaml
