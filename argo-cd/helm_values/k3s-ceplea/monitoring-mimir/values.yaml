@@ -54,7 +54,7 @@ global:
     - secretRef:
         name: monitoring-mimir-s3-creds
   podAnnotations:
-    bucketSecretVersion: "2"
+    bucketSecretVersion: "3"
 
 mimir:
   structuredConfig:
