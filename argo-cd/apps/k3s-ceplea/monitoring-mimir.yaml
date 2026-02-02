@@ -13,7 +13,6 @@ spec:
       targetRevision: 6.0.5
       helm:
         valueFiles:
-          - classic-architecture.yaml
           - $values/argo-cd/helm_values/k3s-ceplea/monitoring-mimir/values.yaml
     - chart: app-template
       repoURL: https://bjw-s-labs.github.io/helm-charts

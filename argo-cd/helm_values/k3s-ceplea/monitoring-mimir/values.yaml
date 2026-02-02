@@ -22,9 +22,6 @@ gateway:
       memory: 50Mi
     limits:
       memory: 50Mi
-  service:
-    labels:
-      prometheus.io/service-monitor: "false"
   ingress:
     enabled: true
     ingressClassName: traefik-internal
@@ -78,6 +75,11 @@ mimir:
         bucket_name: mimir-ruler
     memberlist:
       cluster_label: cluster.mimir
+    ingest_storage:
+      enabled: true
+      kafka:
+        auto_create_topic_enabled: true
+        auto_create_topic_default_partitions: 3
     limits:
       max_global_series_per_user: 2000000
       ruler_max_rules_per_rule_group: 500
@@ -217,6 +219,27 @@ overrides_exporter:
     limits:
       memory: 50Mi
   affinity: *monitoring_affinity
+
+kafka:
+  enabled: true
+  replicas: 1
+  logRetentionHours: "1"
+  podDisruptionBudget: null
+  service:
+    type: LoadBalancer
+  persistence:
+    enabled: true
+    size: 20Gi
+    storageClassName: longhorn-1r
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                  - hyper-ryzen
 
 minio:
   enabled: false
