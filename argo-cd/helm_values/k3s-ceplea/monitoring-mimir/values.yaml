@@ -225,8 +225,6 @@ kafka:
   replicas: 1
   logRetentionHours: "1"
   podDisruptionBudget: null
-  service:
-    type: LoadBalancer
   persistence:
     enabled: true
     size: 20Gi
