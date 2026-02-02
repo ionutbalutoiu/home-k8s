@@ -12,8 +12,8 @@ controllers:
         probes:
           readiness:
             enabled: true
-          startup:
-            enabled: true
+            type: HTTP
+            path: /actuator/health/readiness
         resources:
           requests:
             cpu: 10m
