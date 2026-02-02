@@ -1,0 +1,50 @@
+global:
+  alwaysAppendIdentifierToResourceName: true
+
+controllers:
+  kafka-ui:
+    containers:
+      main:
+        image:
+          repository: docker.io/provectuslabs/kafka-ui
+          pullPolicy: IfNotPresent
+          tag: v0.7.2
+        probes:
+          readiness:
+            enabled: true
+          startup:
+            enabled: true
+        resources:
+          requests:
+            cpu: 10m
+            memory: 128Mi
+          # limits:
+          #   memory: 128Mi
+        ports:
+          - containerPort: 8080
+            name: http
+            protocol: TCP
+
+service:
+  kafka-ui:
+    controller: kafka-ui
+    primary: true
+    ports:
+      http:
+        port: 8080
+
+route:
+  kafka-ui:
+    parentRefs:
+      - name: traefik-gateway
+        namespace: traefik-internal
+    hostnames:
+      - kafka-ui.internal.balutoiu.com
+    rules:
+      - name: kafka-ui
+        matches:
+          - path:
+              type: PathPrefix
+              value: /
+        backendRefs:
+          - identifier: kafka-ui
