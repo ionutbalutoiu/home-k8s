@@ -7,7 +7,7 @@ global:
 
 loki:
   podAnnotations:
-    bucketSecretVersion: "2"
+    bucketSecretVersion: "3"
   structuredConfig:
     ruler:
       alertmanager_url: http://monitoring-mimir-gateway.monitoring-mimir.svc:80/alertmanager
