@@ -22,6 +22,9 @@ gateway:
       memory: 50Mi
     limits:
       memory: 50Mi
+  service:
+    labels:
+      prometheus.io/service-monitor: "false"
   ingress:
     enabled: true
     ingressClassName: traefik-internal
