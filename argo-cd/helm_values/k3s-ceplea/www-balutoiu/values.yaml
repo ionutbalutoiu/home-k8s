@@ -32,6 +32,7 @@ controllers:
         env:
           INTERNAL_SERVER_NAME: files-react.internal.balutoiu.com
           INTERNAL_LISTEN: "81"
+          PUBLIC_LISTEN: "81"
         probes:
           readiness:
             enabled: true
