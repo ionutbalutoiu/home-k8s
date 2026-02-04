@@ -24,29 +24,6 @@ controllers:
           - containerPort: 80
             name: http
             protocol: TCP
-      files-browser-frontend-react:
-        image:
-          repository: ghcr.io/ionutbalutoiu/files-browser-frontend-react
-          pullPolicy: IfNotPresent
-          tag: 0.1.0
-        env:
-          INTERNAL_SERVER_NAME: files-react.internal.balutoiu.com
-          INTERNAL_LISTEN: "81"
-        probes:
-          readiness:
-            enabled: true
-          startup:
-            enabled: true
-        resources:
-          requests:
-            cpu: 10m
-            memory: 128Mi
-          limits:
-            memory: 256Mi
-        ports:
-          - containerPort: 81
-            name: http
-            protocol: TCP
       files-browser-backend:
         image:
           repository: ghcr.io/ionutbalutoiu/files-browser-backend
@@ -94,12 +71,6 @@ service:
     ports:
       http:
         port: 80
-  files-browser-frontend-react:
-    controller: www-balutoiu
-    primary: true
-    ports:
-      http:
-        port: 81
   openssh-server:
     controller: www-balutoiu
     type: LoadBalancer
@@ -160,20 +131,6 @@ route:
               value: /
         backendRefs:
           - identifier: files-browser-frontend
-  files-internal-react:
-    parentRefs:
-      - name: traefik-gateway
-        namespace: traefik-internal
-    hostnames:
-      - files-react.internal.balutoiu.com
-    rules:
-      - name: files-react-internal
-        matches:
-          - path:
-              type: PathPrefix
-              value: /
-        backendRefs:
-          - identifier: files-browser-frontend-react
 
 configMaps:
   ssh-pub-keys:
