@@ -230,7 +230,7 @@ kafka:
   podDisruptionBudget: null
   persistence:
     enabled: true
-    size: 20Gi
+    size: 25Gi
     storageClassName: longhorn-1r
   affinity:
     nodeAffinity:
