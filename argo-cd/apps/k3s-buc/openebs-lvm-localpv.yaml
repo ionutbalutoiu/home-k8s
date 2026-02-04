@@ -10,7 +10,7 @@ spec:
   sources:
     - chart: lvm-localpv
       repoURL: https://openebs.github.io/lvm-localpv
-      targetRevision: 1.8.0
+      targetRevision: 1.8.1
       helm:
         valueFiles:
           - $values/argo-cd/helm_values/k3s-buc/openebs-lvm-localpv/values.yaml
