@@ -10,7 +10,7 @@ spec:
   sources:
     - chart: argocd-image-updater
       repoURL: https://argoproj.github.io/argo-helm
-      targetRevision: 1.0.5
+      targetRevision: 1.1.0
       helm:
         valueFiles:
           - $values/argo-cd/helm_values/k3s-ceplea/argocd-image-updater/values.yaml
