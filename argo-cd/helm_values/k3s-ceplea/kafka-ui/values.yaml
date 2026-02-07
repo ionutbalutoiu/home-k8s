@@ -3,6 +3,17 @@ global:
 
 controllers:
   kafka-ui:
+    initContainers:
+      init-config:
+        image:
+          repository: busybox
+          pullPolicy: IfNotPresent
+          tag: 1.37.0
+        command:
+          - cp
+        args:
+          - /config.yaml
+          - /etc/kafkaui/dynamic_config.yaml
     containers:
       main:
         image:
@@ -19,9 +30,9 @@ controllers:
         resources:
           requests:
             cpu: 10m
-            memory: 128Mi
-          # limits:
-          #   memory: 128Mi
+            memory: 512Mi
+          limits:
+            memory: 1Gi
         ports:
           - containerPort: 8080
             name: http
@@ -50,3 +61,35 @@ route:
               value: /
         backendRefs:
           - identifier: kafka-ui
+
+configMaps:
+  config:
+    data:
+      config.yaml: |
+        auth:
+          type: DISABLED
+        kafka:
+          clusters:
+          - bootstrapServers: monitoring-mimir-kafka.monitoring-mimir.svc.cluster.local.:9092
+            name: mimir-kafka
+            properties: {}
+            readOnly: false
+        rbac:
+          roles: []
+        webclient: {}
+
+persistence:
+  config:
+    type: configMap
+    identifier: config
+    advancedMounts:
+      kafka-ui:
+        init-config:
+          - path: /config.yaml
+            readOnly: true
+            subPath: config.yaml
+
+  etc:
+    type: emptyDir
+    globalMounts:
+      - path: /etc/kafkaui
