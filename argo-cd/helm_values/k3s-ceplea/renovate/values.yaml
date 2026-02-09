@@ -9,7 +9,8 @@ renovate:
       "repositories": [
         "ionutbalutoiu/home-backup",
         "ionutbalutoiu/home-k8s-private",
-        "ionutbalutoiu/home-k8s"
+        "ionutbalutoiu/home-k8s",
+        "ionutbalutoiu/files-browser"
       ]
     }
   persistence:
