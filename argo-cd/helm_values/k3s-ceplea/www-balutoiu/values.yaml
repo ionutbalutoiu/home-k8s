@@ -8,7 +8,7 @@ controllers:
         image:
           repository: ghcr.io/ionutbalutoiu/files-browser-frontend
           pullPolicy: IfNotPresent
-          tag: 0.4.0
+          tag: 0.5.0
         probes:
           readiness:
             enabled: true
