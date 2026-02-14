@@ -2,6 +2,12 @@ preUpgradeChecker:
   jobEnabled: false
   upgradeVersionCheck: false
 
+defaultSettings:
+  fastReplicaRebuildEnabled: true
+  snapshotDataIntegrity: true
+  snapshotDataIntegrityImmediateCheckAfterSnapshotCreation: true
+  snapshotDataIntegrityCronjob: "0 3 * * *"
+
 image:
   longhorn:
     instanceManager:
