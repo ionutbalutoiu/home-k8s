@@ -10,7 +10,7 @@ spec:
   sources:
     - chart: reloader
       repoURL: https://stakater.github.io/stakater-charts
-      targetRevision: 2.2.7
+      targetRevision: 2.2.8
       helm:
         valueFiles:
           - $values/argo-cd/helm_values/k3s-buc/reloader/values.yaml
