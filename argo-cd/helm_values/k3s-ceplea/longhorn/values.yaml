@@ -4,7 +4,7 @@ preUpgradeChecker:
 
 defaultSettings:
   fastReplicaRebuildEnabled: true
-  snapshotDataIntegrity: true
+  snapshotDataIntegrity: enabled
   snapshotDataIntegrityImmediateCheckAfterSnapshotCreation: true
   snapshotDataIntegrityCronjob: "0 3 * * *"
 
