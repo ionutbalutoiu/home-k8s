@@ -104,7 +104,7 @@ configMaps:
             destination:
               type: restic
               repo: rclone:onedrive-iony:restic-backups/k3s-buc/sea-pi_pvc_data-garage-0
-              keep_last: 2
+              keep_last: 1
           ###
           ### Backup directory - /home
           ###
