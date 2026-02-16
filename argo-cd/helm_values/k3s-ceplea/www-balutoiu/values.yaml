@@ -46,7 +46,7 @@ controllers:
         image:
           repository: lscr.io/linuxserver/openssh-server
           pullPolicy: IfNotPresent
-          tag: 10.2_p1-r0-ls215 # https://hub.docker.com/r/linuxserver/openssh-server
+          tag: 10.2_p1-r0-ls216 # https://hub.docker.com/r/linuxserver/openssh-server
         env:
           TZ: Europe/Bucharest
           PUID: 101
