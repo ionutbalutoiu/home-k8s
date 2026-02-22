@@ -162,7 +162,7 @@ repoServer:
           value: "8.17.0"
         # renovate: datasource=github-releases depName=sops packageName=getsops/sops
         - name: SOPS_VERSION
-          value: "3.11.0"
+          value: "3.12.1"
       args:
         - |
           mkdir -p /gitops-tools/helm-plugins
