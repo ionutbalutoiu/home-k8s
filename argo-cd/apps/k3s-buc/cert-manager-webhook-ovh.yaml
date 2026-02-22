@@ -10,7 +10,7 @@ spec:
   sources:
     - chart: cert-manager-webhook-ovh
       repoURL: https://aureq.github.io/cert-manager-webhook-ovh
-      targetRevision: 0.8.0
+      targetRevision: 0.9.1
       helm:
         valueFiles:
           - $values/argo-cd/helm_values/k3s-buc/cert-manager-webhook-ovh/values.yaml
