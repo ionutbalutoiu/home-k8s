@@ -1,5 +1,3 @@
-configVersion: 0.0.2
-
 groupName: acme.balutoiu.com
 
 issuers:
@@ -21,10 +19,17 @@ issuers:
       applicationConsumerKeyRef:
         name: cert-manager-webhook-ovh-app-creds
         key: consumerKey
+    externalAccountBinding:
+      enabled: false
+      keyID: ''
+      keySecretRef:
+        name: ''
+        key: ''
 
-resources:
-  requests:
-    cpu: 3m
-    memory: 51Mi
-  limits:
-    memory: 51Mi
+pod:
+  resources:
+    requests:
+      cpu: 3m
+      memory: 51Mi
+    limits:
+      memory: 51Mi
