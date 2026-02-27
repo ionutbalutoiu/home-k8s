@@ -48,7 +48,7 @@ controllers:
         image:
           repository: ghcr.io/blakeblackshear/frigate
           pullPolicy: IfNotPresent
-          tag: 0.16.4
+          tag: 0.17.0
         envFrom:
           - secretRef:
               name: frigate-secrets
