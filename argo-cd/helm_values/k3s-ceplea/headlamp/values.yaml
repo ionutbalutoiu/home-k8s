@@ -6,6 +6,9 @@ resources:
     memory: 64Mi
 
 config:
+  #sessionTTL: 86400
+  # Bypasses: https://github.com/kubernetes-sigs/headlamp/issues/4883
+  sessionTTL: null
   oidc:
     usePKCE: true
     secret:
