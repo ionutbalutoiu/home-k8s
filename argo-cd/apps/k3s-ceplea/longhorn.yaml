@@ -12,7 +12,7 @@ spec:
   sources:
     - chart: longhorn
       repoURL: https://charts.longhorn.io
-      targetRevision: 1.11.0
+      targetRevision: 1.11.1
       helm:
         valueFiles:
           - $values/argo-cd/helm_values/k3s-ceplea/longhorn/values.yaml
