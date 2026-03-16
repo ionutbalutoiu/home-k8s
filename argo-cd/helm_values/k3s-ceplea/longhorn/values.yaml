@@ -1,19 +1,11 @@
 preUpgradeChecker:
   jobEnabled: false
-  upgradeVersionCheck: false
 
 defaultSettings:
   fastReplicaRebuildEnabled: true
   snapshotDataIntegrity: enabled
   snapshotDataIntegrityImmediateCheckAfterSnapshotCreation: true
   snapshotDataIntegrityCronjob: "0 3 * * *"
-
-image:
-  longhorn:
-    instanceManager:
-      tag: v1.11.0-hotfix-1
-    manager:
-      tag: v1.11.0-hotfix-1
 
 persistence:
   defaultClass: true
