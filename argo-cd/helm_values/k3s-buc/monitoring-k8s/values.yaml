@@ -94,10 +94,10 @@ collectors:
     alloy:
       resources:
         requests:
-          cpu: 3m
-          memory: 256Mi
+          cpu: 50m
+          memory: 512Mi
         limits:
-          memory: 256Mi
+          memory: 512Mi
 
   alloy-logs:
     presets:
