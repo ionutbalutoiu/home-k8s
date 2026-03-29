@@ -15,7 +15,7 @@ destinations:
 
 clusterMetrics:
   enabled: true
-  collector: alloy-singleton
+  collector: alloy-metrics
   kubelet:
     metricsTuning:
       useDefaultAllowList: false
@@ -31,33 +31,21 @@ clusterMetrics:
       includeMetrics:
         - machine_cpu_cores
 
-telemetryServices:
-  node-exporter:
-    deploy: true
-    resources:
-      requests:
-        cpu: 4m
-        memory: 50Mi
-      limits:
-        memory: 50Mi
-    extraArgs:
-      - --collector.filesystem.mount-points-exclude=^/(dev|proc|run/credentials/.+|sys|var/lib/docker/.+|var/lib/containers/storage/.+|var/lib/kubelet/.+)($|/)
-  kube-state-metrics:
-    deploy: true
-    resources:
-      requests:
-        cpu: 5m
-        memory: 68Mi
-      limits:
-        memory: 68Mi
-
-podLogsViaLoki:
+hostMetrics:
   enabled: true
-  collector: alloy-logs
+  collector: alloy-metrics
 
 clusterEvents:
   enabled: true
   collector: alloy-singleton
+
+nodeLogs:
+  enabled: true
+  collector: alloy-logs
+
+podLogsViaLoki:
+  enabled: true
+  collector: alloy-logs
 
 annotationAutodiscovery:
   enabled: true
@@ -69,8 +57,14 @@ prometheusOperatorObjects:
 
 collectors:
   alloy-metrics:
+    controller:
+      replicas: 2
+      podDisruptionBudget:
+        enabled: true
+        maxUnavailable: 1
     presets:
       - statefulset
+      - clustered
     alloy:
       resources:
         requests:
@@ -78,7 +72,6 @@ collectors:
           memory: 2472Mi
         limits:
           memory: 2472Mi
-
   alloy-singleton:
     presets:
       - singleton
@@ -118,14 +111,14 @@ collectors:
     alloy:
       resources:
         requests:
-          cpu: 50m
-          memory: 512Mi
+          cpu: 19m
+          memory: 256Mi
         limits:
-          memory: 512Mi
-
+          memory: 256Mi
   alloy-logs:
     presets:
       - filesystem-log-reader
+      - daemonset
     alloy:
       resources:
         requests:
@@ -133,6 +126,26 @@ collectors:
           memory: 358Mi
         limits:
           memory: 358Mi
+
+telemetryServices:
+  node-exporter:
+    deploy: true
+    resources:
+      requests:
+        cpu: 4m
+        memory: 50Mi
+      limits:
+        memory: 50Mi
+    extraArgs:
+      - --collector.filesystem.mount-points-exclude=^/(dev|proc|run/credentials/.+|sys|var/lib/docker/.+|var/lib/containers/storage/.+|var/lib/kubelet/.+)($|/)
+  kube-state-metrics:
+    deploy: true
+    resources:
+      requests:
+        cpu: 5m
+        memory: 68Mi
+      limits:
+        memory: 68Mi
 
 alloy-operator:
   resources:

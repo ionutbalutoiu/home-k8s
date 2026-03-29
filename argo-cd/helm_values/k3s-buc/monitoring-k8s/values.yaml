@@ -15,7 +15,7 @@ destinations:
 
 clusterMetrics:
   enabled: true
-  collector: alloy-singleton
+  collector: alloy-metrics
   kubelet:
     metricsTuning:
       useDefaultAllowList: false
@@ -31,33 +31,21 @@ clusterMetrics:
       includeMetrics:
         - machine_cpu_cores
 
-telemetryServices:
-  node-exporter:
-    deploy: true
-    resources:
-      requests:
-        cpu: 2m
-        memory: 32Mi
-      limits:
-        memory: 32Mi
-    extraArgs:
-      - --collector.filesystem.mount-points-exclude=^/(dev|proc|run/credentials/.+|sys|var/lib/docker/.+|var/lib/containers/storage/.+|var/lib/kubelet/.+)($|/)
-  kube-state-metrics:
-    deploy: true
-    resources:
-      requests:
-        cpu: 1m
-        memory: 50Mi
-      limits:
-        memory: 50Mi
-
-podLogsViaLoki:
+hostMetrics:
   enabled: true
-  collector: alloy-logs
+  collector: alloy-metrics
 
 clusterEvents:
   enabled: true
   collector: alloy-singleton
+
+nodeLogs:
+  enabled: true
+  collector: alloy-logs
+
+podLogsViaLoki:
+  enabled: true
+  collector: alloy-logs
 
 annotationAutodiscovery:
   enabled: true
@@ -78,7 +66,6 @@ collectors:
           memory: 1Gi
         limits:
           memory: 1Gi
-
   alloy-singleton:
     presets:
       - singleton
@@ -98,10 +85,10 @@ collectors:
           memory: 512Mi
         limits:
           memory: 512Mi
-
   alloy-logs:
     presets:
       - filesystem-log-reader
+      - daemonset
     alloy:
       resources:
         requests:
@@ -109,6 +96,26 @@ collectors:
           memory: 150Mi
         limits:
           memory: 150Mi
+
+telemetryServices:
+  node-exporter:
+    deploy: true
+    resources:
+      requests:
+        cpu: 2m
+        memory: 32Mi
+      limits:
+        memory: 32Mi
+    extraArgs:
+      - --collector.filesystem.mount-points-exclude=^/(dev|proc|run/credentials/.+|sys|var/lib/docker/.+|var/lib/containers/storage/.+|var/lib/kubelet/.+)($|/)
+  kube-state-metrics:
+    deploy: true
+    resources:
+      requests:
+        cpu: 1m
+        memory: 50Mi
+      limits:
+        memory: 50Mi
 
 alloy-operator:
   resources:
