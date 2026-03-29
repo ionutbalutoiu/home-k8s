@@ -34,6 +34,10 @@ clusterMetrics:
 hostMetrics:
   enabled: true
   collector: alloy-metrics
+  global:
+    scrapeInterval: 30s
+  linuxHosts:
+    enabled: true
 
 clusterEvents:
   enabled: true
