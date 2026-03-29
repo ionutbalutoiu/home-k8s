@@ -44,9 +44,9 @@ sidecar:
   resources:
     requests:
       cpu: 2m
-      memory: 300Mi
+      memory: 350Mi
     limits:
-      memory: 300Mi
+      memory: 350Mi
   dashboards:
     enabled: true
     label: grafana_dashboard

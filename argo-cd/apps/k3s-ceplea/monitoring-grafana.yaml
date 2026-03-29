@@ -28,6 +28,11 @@ spec:
       targetRevision: HEAD
       directory:
         recurse: true
+    - path: argo-cd/extras/k3s-ceplea/monitoring-grafana-test
+      repoURL: https://github.com/ionutbalutoiu/home-k8s.git
+      targetRevision: HEAD
+      directory:
+        recurse: true
   destination:
     namespace: monitoring-grafana
     server: https://kubernetes.default.svc
