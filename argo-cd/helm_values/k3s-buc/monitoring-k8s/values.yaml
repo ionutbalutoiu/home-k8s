@@ -69,6 +69,8 @@ prometheusOperatorObjects:
 
 collectors:
   alloy-metrics:
+    presets:
+      - statefulset
     alloy:
       resources:
         requests:
@@ -78,6 +80,8 @@ collectors:
           memory: 1Gi
 
   alloy-singleton:
+    presets:
+      - singleton
     extraConfig: |
       //
       // Mimir rules are saved by default in the "k3s-buc" Mimir tenant
@@ -91,9 +95,9 @@ collectors:
       resources:
         requests:
           cpu: 3m
-          memory: 128Mi
+          memory: 256Mi
         limits:
-          memory: 128Mi
+          memory: 256Mi
 
   alloy-logs:
     presets:
