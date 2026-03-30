@@ -231,16 +231,8 @@ kafka:
   persistence:
     enabled: true
     size: 20Gi
-    storageClassName: longhorn-1r
-  affinity:
-    nodeAffinity:
-      requiredDuringSchedulingIgnoredDuringExecution:
-        nodeSelectorTerms:
-          - matchExpressions:
-              - key: kubernetes.io/hostname
-                operator: In
-                values:
-                  - hyper-ryzen
+    storageClassName: longhorn-2r
+  monitoring_affinity: *monitoring_affinity
 
 minio:
   enabled: false
