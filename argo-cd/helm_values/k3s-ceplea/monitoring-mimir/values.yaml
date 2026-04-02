@@ -113,9 +113,10 @@ ingester:
       cpu: 120m
       memory: 2Gi
     limits:
-      memory: 2Gi
+      memory: 8Gi
   persistentVolume:
     storageClass: longhorn-2r
+    size: 8Gi
   zoneAwareReplication:
     zones:
       - name: zone-a
@@ -134,7 +135,7 @@ store_gateway:
       cpu: 35m
       memory: 512Mi
     limits:
-      memory: 512Mi
+      memory: 2Gi
   persistentVolume:
     storageClass: longhorn-2r
     size: 1Gi
