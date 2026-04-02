@@ -56,7 +56,6 @@ controllers:
 service:
   wg-proxy:
     controller: wg-proxy
-    type: LoadBalancer
     annotations:
       external-dns.alpha.kubernetes.io/hostname: wg-proxy.internal.balutoiu.com
     ports:

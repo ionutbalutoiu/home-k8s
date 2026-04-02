@@ -73,7 +73,6 @@ service:
         port: 80
   openssh-server:
     controller: www-balutoiu
-    type: LoadBalancer
     primary: false
     annotations:
       external-dns.alpha.kubernetes.io/hostname: www-balutoiu.internal.balutoiu.com
