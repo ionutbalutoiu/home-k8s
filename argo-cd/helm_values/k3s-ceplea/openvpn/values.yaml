@@ -45,7 +45,8 @@ service:
   openvpn:
     controller: openvpn
     type: LoadBalancer
-    loadBalancerIP: "10.119.20.12"
+    annotations:
+      metallb.io/loadBalancerIPs: 10.119.20.12
     ports:
       openvpn:
         protocol: UDP

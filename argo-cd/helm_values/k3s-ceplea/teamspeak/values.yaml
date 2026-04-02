@@ -20,6 +20,8 @@ service:
   teamspeak:
     controller: teamspeak
     type: LoadBalancer
+    annotations:
+      metallb.io/loadBalancerIPs: 10.119.20.11
     ports:
       voice-port:
         port: 9987

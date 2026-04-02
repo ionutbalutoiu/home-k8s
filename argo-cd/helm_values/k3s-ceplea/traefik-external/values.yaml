@@ -6,8 +6,8 @@ deployment:
 
 service:
   type: LoadBalancer
-  spec:
-    loadBalancerIP: "10.119.20.20"
+  annotations:
+    metallb.io/loadBalancerIPs: 10.119.20.20
 
 ports:
   traefiksecure:

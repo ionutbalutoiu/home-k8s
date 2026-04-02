@@ -110,6 +110,8 @@ service:
   frigate:
     controller: frigate
     type: LoadBalancer
+    annotations:
+      metallb.io/loadBalancerIPs: 10.119.20.10
     ports:
       http:
         port: 5000
