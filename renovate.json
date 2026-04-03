@@ -22,6 +22,25 @@
         "lscr.io/linuxserver/wireguard"
       ],
       "versioning": "loose"
+    },
+    {
+      "matchPackageNames": [
+        "ghcr.io/renovatebot/charts/renovate"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch",
+        "pin",
+        "digest"
+      ],
+      "minimumReleaseAge": "14 days",
+      "prCreation": "not-pending",
+      "assignAutomerge": true,
+      "assignees": [
+        "ionutbalutoiu"
+      ],
+      "automerge": true,
+      "automergeType": "pr"
     }
   ],
   "customManagers": [
