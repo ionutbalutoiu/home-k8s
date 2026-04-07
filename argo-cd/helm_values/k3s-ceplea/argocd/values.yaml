@@ -210,9 +210,13 @@ configs:
       https
   rbac:
     scopes: "[email, groups]"
-    policy.default: role:readonly
+    policy.default: role:authenticated
     policy.csv: |
       g, k3s-admins, role:admin
+      p, role:evelio-project-catalog, projects, get, evelio, allow
+      p, role:evelio-project-catalog, projects, get, evelio-dev, allow
+      p, role:evelio-project-catalog, projects, get, evelio-staging, allow
+      g, evelio, role:evelio-project-catalog
   params:
     server.insecure: true
     controller.sync.timeout.seconds: 300 # 5 minutes
