@@ -30,7 +30,7 @@ jobs:
           # renovate: datasource=github-releases depName=gh packageName=cli/cli
           GH_VERSION: v2.89.0
           # renovate: datasource=github-releases depName=yq packageName=mikefarah/yq
-          YQ_VERSION: v4.52.5
+          YQ_VERSION: v4.53.2
         run: |
           set -eo pipefail
 
