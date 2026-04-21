@@ -1,6 +1,7 @@
 garage:
   dbEngine: "sqlite"
   replicationFactor: "1"
+  existingRpcSecret: garage-rpc-secret
   s3:
     api:
       region: "garage"

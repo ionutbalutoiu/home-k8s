@@ -14,7 +14,12 @@ spec:
       helm:
         valueFiles:
           - $values/argo-cd/helm_values/k3s-buc/garage/values.yaml
-          - $values/argo-cd/helm_values/k3s-buc/garage/secrets.yaml
+    - repoURL: https://github.com/ionutbalutoiu/home-k8s.git
+      path: charts/external-secrets
+      targetRevision: HEAD
+      helm:
+        valueFiles:
+          - $values/argo-cd/helm_values/k3s-buc/garage/values_external_secrets.yaml
     - repoURL: https://github.com/ionutbalutoiu/home-k8s.git
       targetRevision: HEAD
       ref: values
