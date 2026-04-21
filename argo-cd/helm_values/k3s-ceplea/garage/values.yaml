@@ -1,5 +1,6 @@
 garage:
   replicationFactor: "2"
+  existingRpcSecret: garage-rpc-secret
   s3:
     api:
       region: "garage"
