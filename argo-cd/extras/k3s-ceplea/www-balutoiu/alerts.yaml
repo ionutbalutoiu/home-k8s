@@ -6,12 +6,12 @@ metadata:
     loki: "1"
 spec:
   groups:
-    - name: nginx-404-requests
+    - name: files-browser-frontend-alerts
       rules:
-        - alert: WWWBalutoiuNginx404Requests
+        - alert: FilesBrowserFrontend404Requests
           expr: |
             count_over_time(
-                {service_name="www-balutoiu", container="nginx"}
+                {service_name="www-balutoiu", container="files-browser-frontend"}
                 | pattern `<_> - - <_> "<method> <_> <_>" <status> <_> <_> "<_>" <_>`
                 | status = "404"
             [5m]) > 200
@@ -19,6 +19,6 @@ spec:
           labels:
             severity: warning
           annotations:
-            summary: A high number of 404 errors detected in Nginx `www-balutoiu` logs.
+            summary: High number of 404 errors in www-balutoiu Files Browser Frontend
             description: |-
-              Nginx `www-balutoiu` is encountering an unusually high number of 404 errors. Current count: `{{ $value }}`.
+              Files Browser Frontend is experiencing a high number of 404 errors. Current count: `{{ $value }}`.
