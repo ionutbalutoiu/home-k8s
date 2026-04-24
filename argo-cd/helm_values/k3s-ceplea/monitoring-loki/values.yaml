@@ -1,9 +1,9 @@
 global:
-  extraArgs:
-    - -config.expand-env=true
   extraEnvFrom:
     - secretRef:
         name: monitoring-loki-s3-credentials
+
+deploymentMode: Distributed
 
 loki:
   podAnnotations:
@@ -34,6 +34,22 @@ loki:
     ingestion_burst_size_mb: 36 # default = 6 (MB)
   extraMemberlistConfig:
     cluster_label: cluster.loki
+  schemaConfig:
+    configs:
+      - from: 2024-04-01
+        store: tsdb
+        object_store: s3
+        schema: v13
+        index:
+          prefix: loki_index_
+          period: 24h
+  ingester:
+    chunk_encoding: snappy
+  tracing:
+    enabled: true
+  querier:
+    # Default is 4, if you have enough memory and CPU you can increase, reduce if OOMing
+    max_concurrent: 4
 
 .monitoring_affinity: &monitoring_affinity
   nodeAffinity:
@@ -49,6 +65,8 @@ loki:
 
 gateway:
   replicas: 2
+  podDisruptionBudget:
+    maxUnavailable: 1
   resources:
     requests:
       cpu: 5m
@@ -93,10 +111,6 @@ querier:
       memory: 512Mi
     limits:
       memory: 1536Mi
-  persistence:
-    # NOTE: This is used for querier cache.
-    enabled: true
-    size: 10Gi
   affinity: *monitoring_affinity
 
 queryFrontend:
@@ -220,6 +234,7 @@ monitoring:
     enabled: true
   rules:
     enabled: true
+    alerting: true
 
 # Disable "Chart Testing" settings:
 # https://github.com/grafana/loki/blob/v3.4.3/production/helm/loki/values.yaml#L631-L718
@@ -230,3 +245,13 @@ lokiCanary:
 
 minio:
   enabled: false
+
+# Zero out replica counts of other deployment modes
+backend:
+  replicas: 0
+read:
+  replicas: 0
+write:
+  replicas: 0
+singleBinary:
+  replicas: 0
