@@ -9,7 +9,7 @@ spec:
   project: default
   sources:
     - chart: immich
-      repoURL: https://immich-app.github.io/immich-charts
+      repoURL: ghcr.io/immich-app/immich-charts
       targetRevision: 0.11.1
       helm:
         valueFiles:
