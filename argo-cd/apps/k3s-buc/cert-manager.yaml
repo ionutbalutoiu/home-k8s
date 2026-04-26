@@ -15,8 +15,19 @@ spec:
         valueFiles:
           - $values/argo-cd/helm_values/k3s-buc/cert-manager/values.yaml
     - repoURL: https://github.com/ionutbalutoiu/home-k8s.git
+      path: charts/external-secrets
+      targetRevision: HEAD
+      helm:
+        valueFiles:
+          - $values/argo-cd/helm_values/k3s-buc/cert-manager/values_external_secrets.yaml
+    - repoURL: https://github.com/ionutbalutoiu/home-k8s.git
       targetRevision: HEAD
       ref: values
+    - path: argo-cd/extras/k3s-buc/cert-manager
+      repoURL: https://github.com/ionutbalutoiu/home-k8s.git
+      targetRevision: HEAD
+      directory:
+        recurse: true
   destination:
     namespace: cert-manager
     server: https://kubernetes.default.svc
