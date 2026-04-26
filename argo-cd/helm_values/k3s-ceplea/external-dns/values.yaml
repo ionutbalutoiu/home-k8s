@@ -1,5 +1,5 @@
 provider:
-  name: ovh
+  name: cloudflare
 policy: sync
 interval: 1m
 sources:
@@ -13,21 +13,11 @@ domainFilters:
   - balutoiu.com
 
 env:
-  - name: OVH_APPLICATION_KEY
+  - name: CF_API_TOKEN
     valueFrom:
       secretKeyRef:
-        name: external-dns-ovh-app-creds
-        key: OVH_APPLICATION_KEY
-  - name: OVH_APPLICATION_SECRET
-    valueFrom:
-      secretKeyRef:
-        name: external-dns-ovh-app-creds
-        key: OVH_APPLICATION_SECRET
-  - name: OVH_CONSUMER_KEY
-    valueFrom:
-      secretKeyRef:
-        name: external-dns-ovh-app-creds
-        key: OVH_CONSUMER_KEY
+        name: external-dns-cloudflare-api-token
+        key: CF_API_TOKEN
 
 extraArgs:
   - --txt-wildcard-replacement=asterisk

@@ -1,0 +1,20 @@
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: le-prod
+spec:
+  acme:
+    email: ionutbalutoiu@gmail.com
+    server: https://acme-v02.api.letsencrypt.org/directory
+    privateKeySecretRef:
+      name: le-prod-account-key
+    solvers:
+      - selector:
+          dnsZones:
+            - balutoiu.com
+        dns01:
+          cnameStrategy: None
+          cloudflare:
+            apiTokenSecretRef:
+              name: cert-manager-cloudflare-api-token
+              key: api-token
