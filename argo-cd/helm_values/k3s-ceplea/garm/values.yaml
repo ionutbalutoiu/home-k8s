@@ -1,4 +1,5 @@
 defaultPodOptions:
+  automountServiceAccountToken: true
   affinity:
     nodeAffinity:
       preferredDuringSchedulingIgnoredDuringExecution:
