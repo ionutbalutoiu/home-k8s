@@ -141,6 +141,10 @@ configs:
       p, role:evelio-project-catalog, projects, get, evelio, allow
       p, role:evelio-project-catalog, projects, get, evelio-dev, allow
       p, role:evelio-project-catalog, projects, get, evelio-staging, allow
+      p, role:evelio-project-catalog, logs, get, evelio/*, allow
+      p, role:evelio-project-catalog, logs, get, evelio-dev/*, allow
+      p, role:evelio-project-catalog, logs, get, evelio-staging/*, allow
+      p, role:evelio-project-catalog, applications, delete//Pod/*/*, evelio-dev/*, allow
       g, evelio, role:evelio-project-catalog
   params:
     server.insecure: true
