@@ -20,7 +20,7 @@ persistence:
     size: 5Gi
   data:
     storageClass: openebs-lvm-pv-xfs
-    size: 700Gi
+    size: 770Gi
 
 deployment:
   kind: StatefulSet
