@@ -10,7 +10,7 @@ spec:
   sources:
     - chart: loki
       repoURL: https://grafana-community.github.io/helm-charts
-      targetRevision: 17.1.0
+      targetRevision: 17.1.1
       helm:
         valueFiles:
           - $values/argo-cd/helm_values/k3s-ceplea/monitoring-loki/values.yaml
