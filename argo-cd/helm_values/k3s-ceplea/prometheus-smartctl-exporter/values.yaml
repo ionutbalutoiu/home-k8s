@@ -11,7 +11,7 @@ extraArgs:
   smartctl.scan-device-type: by-id
 
 prometheusRules:
-  enabled: true
+  enabled: false
 
 resources:
   requests:
