@@ -3,14 +3,16 @@ groups:
 
     rules:
       - alert: SmartDeviceTemperatureWarning
-        expr: "smartctl_device_temperature > 60"
-        for: 2m
+        expr: avg_over_time(smartctl_device_temperature[15m]) > 60
+        for: 5m
         labels:
           severity: warning
         annotations:
           summary: Smart device temperature warning
           description: >-
-            Device `{{ $labels.device }}` on instance `{{ $labels.instance }}` has a temperature of `{{ $value }}`.
+            Device `{{ $labels.device }}` on instance `{{ $labels.instance }}`
+            has averaged above 60°C over the last 15 minutes.
+            Current value is `{{ $value }}`°C.
 
       - alert: SmartDeviceTemperatureCritical
         expr: "smartctl_device_temperature > 80"
