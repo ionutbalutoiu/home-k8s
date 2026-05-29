@@ -19,7 +19,7 @@ controllers:
         image:
           repository: dockurr/samba
           pullPolicy: IfNotPresent
-          tag: 4.23.7
+          tag: 4.23.8
         env:
           NAME: archive
           USER:
