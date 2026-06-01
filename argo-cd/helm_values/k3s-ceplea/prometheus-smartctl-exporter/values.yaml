@@ -14,13 +14,13 @@ prometheusRules:
   enabled: true
   rules:
     smartCTLDDeviceTemperature:
-      expr: avg_over_time(smartctl_device_temperature{temperature_type="current"}[15m]) > 60
+      expr: avg_over_time(smartctl_device_temperature{temperature_type="current"}[15m]) > 75
       for: 5m
       annotations:
         summary: Smart device temperature warning
         description: >-
           Device {{ $labels.device }} on instance {{ $labels.instance }}
-          has averaged above 60°C over the last 15 minutes.
+          has averaged above 75°C over the last 15 minutes.
           Current value is {{ $value }}°C.
     smartDeviceTemperatureCritical:
       enabled: true
