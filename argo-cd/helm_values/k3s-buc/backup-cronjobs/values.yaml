@@ -134,7 +134,7 @@ configMaps:
             destination:
               type: restic
               repo: rclone:onedrive-eli:restic-backups/k3s-buc/sea-pi_dir_storage-zfs-data-backups
-              keep_last: 4
+              keep_last: 1
 
 persistence:
   host-root:
