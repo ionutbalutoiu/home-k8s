@@ -11,7 +11,28 @@ extraArgs:
   smartctl.scan-device-type: by-id
 
 prometheusRules:
-  enabled: false
+  enabled: true
+  rules:
+    smartCTLDDeviceTemperature:
+      expr: avg_over_time(smartctl_device_temperature{temperature_type="current"}[15m]) > 75
+      for: 5m
+      annotations:
+        summary: Smart device temperature warning
+        description: >-
+          Device {{ $labels.device }} on instance {{ $labels.instance }}
+          has averaged above 75°C over the last 15 minutes.
+          Current value is {{ $value }}°C.
+    smartDeviceTemperatureCritical:
+      enabled: true
+      alert: SmartDeviceTemperatureCritical
+      expr: smartctl_device_temperature{temperature_type="current"} > 80
+      for: 2m
+      labels:
+        severity: critical
+      annotations:
+        summary: Smart device temperature critical
+        description: >-
+          Device {{ $labels.device }} on instance {{ $labels.instance }} has a temperature of {{ $value }}°C.
 
 resources:
   requests:
