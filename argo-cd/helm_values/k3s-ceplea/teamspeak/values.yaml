@@ -6,7 +6,7 @@ controllers:
         image:
           repository: teamspeak
           pullPolicy: IfNotPresent
-          tag: 3.13.7
+          tag: 3.13.8
         env:
           TS3SERVER_LICENSE: accept
         resources:
