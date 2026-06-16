@@ -70,7 +70,7 @@ providers:
   file:
     enabled: true
     watch: false
-    content: |
+    content:
       tls:
         certificates:
           - certFile: /certs/wildcard-internal-balutoiu-com/tls.crt

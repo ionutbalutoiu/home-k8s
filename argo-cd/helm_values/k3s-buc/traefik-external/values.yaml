@@ -44,7 +44,7 @@ providers:
   file:
     enabled: true
     watch: false
-    content: |
+    content:
       tls:
         certificates:
           - certFile: /certs/wildcard-buc-balutoiu-com/tls.crt
