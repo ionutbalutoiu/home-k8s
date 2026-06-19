@@ -15,7 +15,7 @@ jobs:
       image_tag: ${{ steps.set-image-tag.outputs.image_tag }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Set garm-k8s-runner image tag
         id: set-image-tag
