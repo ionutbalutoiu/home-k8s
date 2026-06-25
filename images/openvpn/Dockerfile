@@ -1,6 +1,6 @@
 FROM alpine:3.24.1
 
-# renovate: datasource=repology depName=alpine_3_23/openvpn versioning=loose
+# renovate: datasource=repology depName=alpine_3_24/openvpn versioning=loose
 ENV OPENVPN_VERSION="2.6.20-r0"
 
 RUN apk add --no-cache openvpn=${OPENVPN_VERSION} easy-rsa iptables bash
