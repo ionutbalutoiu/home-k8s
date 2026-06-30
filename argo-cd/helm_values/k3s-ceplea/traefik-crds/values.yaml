@@ -1,0 +1,6 @@
+# Gateway API CRDs are managed by the dedicated `gateway-api-crds` app
+# (upstream kubernetes-sigs/gateway-api). Keep them disabled here so Traefik's
+# older bundled copy (v1.5.1) doesn't get rejected by the gateway-api
+# `safe-upgrades` ValidatingAdmissionPolicy.
+gatewayAPI: false
+gatewayAPIExperimental: false
