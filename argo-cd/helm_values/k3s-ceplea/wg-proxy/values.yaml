@@ -33,7 +33,7 @@ controllers:
           liveness: *healthcheck_probe_spec
         resources:
           requests:
-            cpu: 3m
+            cpu: 5m
             memory: 64Mi
           limits:
             memory: 64Mi
@@ -48,7 +48,7 @@ controllers:
           privileged: true
         resources:
           requests:
-            cpu: 1m
+            cpu: 5m
             memory: 64Mi
           limits:
             memory: 64Mi
