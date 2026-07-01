@@ -20,10 +20,10 @@ envValueFrom:
 
 resources:
   requests:
-    cpu: 17m
-    memory: 77Mi
+    cpu: 10m
+    memory: 96Mi
   limits:
-    memory: 77Mi
+    memory: 96Mi
 
 affinity:
   nodeAffinity:
