@@ -16,6 +16,7 @@ config:
     externalSecret:
       enabled: true
       name: headlamp-oidc
+      hasScopes: true
 
 ingress:
   enabled: true
