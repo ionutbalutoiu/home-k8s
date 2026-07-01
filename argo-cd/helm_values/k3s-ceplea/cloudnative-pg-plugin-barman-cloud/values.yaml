@@ -3,6 +3,6 @@ fullnameOverride: plugin-barman-cloud
 resources:
   requests:
     cpu: 2m
-    memory: 83Mi
+    memory: 96Mi
   limits:
-    memory: 83Mi
+    memory: 96Mi

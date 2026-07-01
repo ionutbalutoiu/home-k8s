@@ -43,6 +43,12 @@ controllers:
         args:
           - /config.yml
           - /config/config.yml
+        resources:
+          requests:
+            cpu: 1m
+            memory: 32Mi
+          limits:
+            memory: 32Mi
     containers:
       frigate:
         image:
@@ -54,6 +60,12 @@ controllers:
               name: frigate-secrets
         securityContext:
           privileged: true
+        resources:
+          requests:
+            cpu: 3000m
+            memory: 10Gi
+          limits:
+            memory: 10Gi
 
   wg-proxy:
     strategy: Recreate
@@ -87,9 +99,9 @@ controllers:
         resources:
           requests:
             cpu: 10m
-            memory: 256Mi
+            memory: 32Mi
           limits:
-            memory: 256Mi
+            memory: 32Mi
     initContainers:
       setup-dnat:
         image: *wg_image

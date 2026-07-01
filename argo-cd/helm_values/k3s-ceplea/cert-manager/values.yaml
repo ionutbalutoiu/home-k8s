@@ -4,22 +4,22 @@ crds:
 resources:
   requests:
     cpu: 2m
-    memory: 106Mi
+    memory: 128Mi
   limits:
-    memory: 106Mi
+    memory: 128Mi
 
 webhook:
   resources:
     requests:
       cpu: 1m
-      memory: 75Mi
+      memory: 96Mi
     limits:
-      memory: 75Mi
+      memory: 96Mi
 
 cainjector:
   resources:
     requests:
       cpu: 2m
-      memory: 103Mi
+      memory: 128Mi
     limits:
-      memory: 103Mi
+      memory: 128Mi
