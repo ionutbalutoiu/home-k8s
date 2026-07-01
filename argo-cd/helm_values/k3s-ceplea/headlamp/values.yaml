@@ -1,9 +1,9 @@
 resources:
   limits:
-    memory: 512Mi
+    memory: 256Mi
   requests:
-    cpu: 5m
-    memory: 64Mi
+    cpu: 2m
+    memory: 96Mi
 
 config:
   #sessionTTL: 86400

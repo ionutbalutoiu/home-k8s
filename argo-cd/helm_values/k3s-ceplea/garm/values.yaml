@@ -27,6 +27,12 @@ controllers:
           tag: 3.24
         command:
           - /scripts/init-garm.sh
+        resources:
+          requests:
+            cpu: 1m
+            memory: 32Mi
+          limits:
+            memory: 32Mi
     containers:
       garm:
         image:
@@ -35,10 +41,10 @@ controllers:
           tag: v0.2.1
         resources:
           requests:
-            cpu: 5m
-            memory: 256Mi
+            cpu: 10m
+            memory: 128Mi
           limits:
-            memory: 256Mi
+            memory: 128Mi
   update-pools:
     type: job
     annotations:

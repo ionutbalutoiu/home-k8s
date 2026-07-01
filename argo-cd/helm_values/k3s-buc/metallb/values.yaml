@@ -1,7 +1,7 @@
 controller:
   resources:
     requests:
-      cpu: 4m
+      cpu: 2m
       memory: 96Mi
     limits:
       memory: 96Mi
@@ -9,7 +9,14 @@ controller:
 speaker:
   resources:
     requests:
-      cpu: 10m
-      memory: 128Mi
+      cpu: 2m
+      memory: 64Mi
     limits:
-      memory: 128Mi
+      memory: 64Mi
+  frr:
+    resources:
+      requests:
+        cpu: 1m
+        memory: 48Mi
+      limits:
+        memory: 48Mi

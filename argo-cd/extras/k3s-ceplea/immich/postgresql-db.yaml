@@ -16,6 +16,13 @@ spec:
     shared_preload_libraries:
       - "vchord.so"
 
+  resources:
+    requests:
+      cpu: 25m
+      memory: 1Gi
+    limits:
+      memory: 1Gi
+
   managed:
     roles:
       - name: immich

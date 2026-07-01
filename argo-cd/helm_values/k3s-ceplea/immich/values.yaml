@@ -14,10 +14,10 @@ valkey:
         main:
           resources:
             requests:
-              cpu: 8m
-              memory: 50Mi
+              cpu: 10m
+              memory: 32Mi
             limits:
-              memory: 50Mi
+              memory: 32Mi
 
 immich:
   persistence:
@@ -82,11 +82,11 @@ server:
             DB_HOSTNAME: immich-postgres-rw.immich.svc
           resources:
             requests:
-              cpu: 1252m
-              memory: 16Gi
+              cpu: 100m
+              memory: 6Gi
             limits:
               cpu: 4000m
-              memory: 16Gi
+              memory: 6Gi
   route:
     main:
       parentRefs:
@@ -122,8 +122,8 @@ machine-learning:
             tag: v2.7.5
           resources:
             requests:
-              cpu: 2000m
-              memory: 8Gi
+              cpu: 50m
+              memory: 2Gi
             limits:
               cpu: 2000m
-              memory: 8Gi
+              memory: 2Gi
