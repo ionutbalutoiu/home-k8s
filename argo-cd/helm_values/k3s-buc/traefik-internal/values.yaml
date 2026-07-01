@@ -66,7 +66,7 @@ ingressRoute:
 
 resources:
   requests:
-    cpu: 5m
+    cpu: 10m
     memory: 96Mi
   limits:
     memory: 96Mi

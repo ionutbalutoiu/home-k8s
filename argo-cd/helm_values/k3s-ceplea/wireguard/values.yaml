@@ -37,7 +37,7 @@ controllers:
               - SYS_MODULE
         resources:
           requests:
-            cpu: 100m
+            cpu: 5m
             memory: 512Mi
           limits:
             memory: 512Mi

@@ -5,8 +5,8 @@ reloader:
     replicas: 2
     resources:
       requests:
-        cpu: 10m
-        memory: 64Mi
+        cpu: 5m
+        memory: 96Mi
       limits:
         memory: 128Mi
   podDisruptionBudget:
