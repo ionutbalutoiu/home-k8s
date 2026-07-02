@@ -1,0 +1,15 @@
+lvmController:
+  resources:
+   requests:
+     cpu: 5m
+     memory: 100Mi
+   limits:
+     memory: 100Mi
+
+lvmNode:
+  resources:
+   requests:
+     cpu: 5m
+     memory: 64Mi
+   limits:
+     memory: 64Mi

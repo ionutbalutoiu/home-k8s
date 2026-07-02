@@ -1,0 +1,24 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: openebs-lvm-pv
+parameters:
+  storage: lvm
+  volgroup: k8s-vg
+  shared: "yes"
+provisioner: local.csi.openebs.io
+reclaimPolicy: Delete
+allowVolumeExpansion: true
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: openebs-lvm-pv-xfs
+parameters:
+  storage: lvm
+  volgroup: k8s-vg
+  shared: "yes"
+  fsType: xfs
+provisioner: local.csi.openebs.io
+reclaimPolicy: Delete
+allowVolumeExpansion: true
