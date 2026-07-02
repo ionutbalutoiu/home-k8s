@@ -76,8 +76,8 @@ configMaps:
           type: DISABLED
         kafka:
           clusters:
-          - bootstrapServers: monitoring-mimir-kafka.monitoring-mimir.svc.cluster.local.:9092
-            name: mimir-kafka
+          - bootstrapServers: main-kafka-bootstrap.kafka.svc.cluster.local.:9092
+            name: main
             properties: {}
             readOnly: false
         rbac:
