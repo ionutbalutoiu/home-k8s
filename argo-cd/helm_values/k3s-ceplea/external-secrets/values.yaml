@@ -17,6 +17,6 @@ certController:
   resources:
     requests:
       cpu: 3m
-      memory: 160Mi
+      memory: 256Mi
     limits:
-      memory: 160Mi
+      memory: 256Mi
