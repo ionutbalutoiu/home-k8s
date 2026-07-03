@@ -12,10 +12,10 @@ garage:
 persistence:
   enabled: true
   meta:
-    storageClass: longhorn-2r-xfs
+    storageClass: openebs-lvm-pv-thin-xfs
     size: 512Mi
   data:
-    storageClass: longhorn-1r-xfs
+    storageClass: openebs-lvm-pv-thin-xfs
     size: 40Gi
 
 deployment:
@@ -31,18 +31,6 @@ affinity:
               operator: In
               values:
                 - beelink-s12-pro
-
-ingress:
-  s3:
-    api:
-      enabled: true
-      className: traefik-internal
-      hosts:
-        # garage S3 API endpoint, to be used with awscli for example
-        - host: "s3.internal.balutoiu.com"
-          paths:
-            - path: /
-              pathType: Prefix
 
 resources:
   requests:
