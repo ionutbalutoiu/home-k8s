@@ -18,11 +18,10 @@ config:
       name: headlamp-oidc
       hasScopes: true
 
-ingress:
+httpRoute:
   enabled: true
-  ingressClassName: traefik-internal
-  hosts:
-    - host: headlamp.internal.balutoiu.com
-      paths:
-        - path: /
-          type: Prefix
+  parentRefs:
+    - name: traefik-gateway
+      namespace: traefik-internal
+  hostnames:
+    - headlamp.internal.balutoiu.com

@@ -14,10 +14,13 @@ persistence:
   defaultDataLocality: best-effort
   reclaimPolicy: Delete
 
-ingress:
+httproute:
   enabled: true
-  host: longhorn.internal.balutoiu.com
-  ingressClassName: traefik-internal
+  parentRefs:
+    - name: traefik-gateway
+      namespace: traefik-internal
+  hostnames:
+    - longhorn.internal.balutoiu.com
 
 metrics:
   serviceMonitor:

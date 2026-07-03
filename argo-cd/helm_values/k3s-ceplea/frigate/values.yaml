@@ -144,19 +144,28 @@ service:
         protocol: TCP
         port: 5544
 
-ingress:
+route:
   frigate:
-    className: traefik-external
-    annotations:
-      traefik.ingress.kubernetes.io/router.middlewares: authelia-forwardauth-authelia@kubernetescrd
-    hosts:
-      - host: frigate.balutoiu.com
-        paths:
-          - path: /
-            pathType: Prefix
-            service:
-              identifier: frigate
-              port: http
+    parentRefs:
+      - name: traefik-gateway
+        namespace: traefik-external
+    hostnames:
+      - frigate.balutoiu.com
+    rules:
+      - name: frigate
+        matches:
+          - path:
+              type: PathPrefix
+              value: /
+        filters:
+          - type: ExtensionRef
+            extensionRef:
+              group: traefik.io
+              kind: Middleware
+              name: forwardauth-authelia
+        backendRefs:
+          - identifier: frigate
+            port: http
 
 configMaps:
   config:
