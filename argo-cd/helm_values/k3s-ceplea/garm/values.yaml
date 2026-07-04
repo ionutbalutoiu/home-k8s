@@ -61,7 +61,7 @@ controllers:
         image:
           repository: alpine/curl
           pullPolicy: IfNotPresent
-          tag: 8.20.0
+          tag: 8.21.0
         envFrom:
           - secretRef:
               name: garm-secrets
