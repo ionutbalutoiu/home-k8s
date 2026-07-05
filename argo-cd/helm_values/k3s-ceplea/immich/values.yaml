@@ -7,6 +7,7 @@ valkey:
     data:
       size: 1Gi
       type: persistentVolumeClaim
+      accessMode: ReadWriteOnce
       storageClass: longhorn-2r
   controllers:
     main:
