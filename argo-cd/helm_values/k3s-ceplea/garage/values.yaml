@@ -25,15 +25,40 @@ deployment:
   # cold restart (pod-0 needs quorum, but pod-1/pod-2 are never created).
   podManagementPolicy: Parallel
 
-# Keep pods out of the Service until they join the cluster: /health returns
-# 503 until the layout is synced and quorum is reachable.
+# Static busybox mounted into the (shell-less) garage image, used by the
+# readiness probe below. Must be a statically linked variant (musl).
+extraVolumes:
+  - name: probe-tools
+    image:
+      reference: docker.io/library/busybox:1.38.0-musl
+      pullPolicy: IfNotPresent
+
+extraVolumeMounts:
+  - name: probe-tools
+    mountPath: /probe
+
+# Keep pods out of the Service until the node properly joined the cluster:
+# 1. the local node has a role assigned in the cluster layout, and
+# 2. /health passes (layout synced and quorum reachable).
+# /health alone is not enough: it reports cluster-wide health, so a fresh
+# node that is connected but not yet in the layout would pass.
 # No livenessProbe on purpose: it would restart all pods on quorum loss.
 readinessProbe:
-  httpGet:
-    path: /health
-    port: 3903
+  exec:
+    command:
+      - /probe/bin/busybox
+      - sh
+      - -ec
+      - |
+        ID="$(/garage node id -q 2>/dev/null | /probe/bin/busybox cut -c1-16)"
+        [ -n "$ID" ]
+        LINE="$(/garage status 2>/dev/null | /probe/bin/busybox grep "^$ID")"
+        [ -n "$LINE" ]
+        case "$LINE" in *"NO ROLE"*) exit 1;; esac
+        /probe/bin/busybox wget -q -T 3 -O /dev/null http://127.0.0.1:3903/health
   initialDelaySeconds: 5
   periodSeconds: 10
+  timeoutSeconds: 5
 
 affinity:
   nodeAffinity:
