@@ -1,0 +1,11 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: garage
+spec:
+  # With RF 3, quorum needs 2 nodes up, so allow at most 1 voluntary disruption.
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: garage
+      app.kubernetes.io/instance: garage

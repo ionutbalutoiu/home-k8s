@@ -21,6 +21,19 @@ persistence:
 deployment:
   kind: StatefulSet
   replicaCount: 3
+  # Required with the readiness probe: OrderedReady would deadlock a full
+  # cold restart (pod-0 needs quorum, but pod-1/pod-2 are never created).
+  podManagementPolicy: Parallel
+
+# Keep pods out of the Service until they join the cluster: /health returns
+# 503 until the layout is synced and quorum is reachable.
+# No livenessProbe on purpose: it would restart all pods on quorum loss.
+readinessProbe:
+  httpGet:
+    path: /health
+    port: 3903
+  initialDelaySeconds: 5
+  periodSeconds: 10
 
 affinity:
   nodeAffinity:
