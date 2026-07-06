@@ -38,7 +38,8 @@ extraVolumeMounts:
     mountPath: /probe
 
 # Keep pods out of the Service until the node properly joined the cluster:
-# 1. the local node has a role assigned in the cluster layout, and
+# 1. the local node is in the CURRENT (applied) cluster layout — a merely
+#    assigned (staged) role must not count, and
 # 2. /health passes (layout synced and quorum reachable).
 # /health alone is not enough: it reports cluster-wide health, so a fresh
 # node that is connected but not yet in the layout would pass.
@@ -52,9 +53,10 @@ readinessProbe:
       - |
         ID="$(/garage node id -q 2>/dev/null | /probe/bin/busybox cut -c1-16)"
         [ -n "$ID" ]
-        LINE="$(/garage status 2>/dev/null | /probe/bin/busybox grep "^$ID")"
-        [ -n "$LINE" ]
-        case "$LINE" in *"NO ROLE"*) exit 1;; esac
+        /garage layout show 2>/dev/null | /probe/bin/busybox awk -v id="$ID" '
+          /^Current cluster layout version:/ { exit }
+          $1 == id { found=1 }
+          END { exit !found }'
         /probe/bin/busybox wget -q -T 3 -O /dev/null http://127.0.0.1:3903/health
   initialDelaySeconds: 5
   periodSeconds: 10
