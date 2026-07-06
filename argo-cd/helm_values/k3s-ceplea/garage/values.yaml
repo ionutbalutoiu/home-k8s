@@ -62,6 +62,12 @@ readinessProbe:
   periodSeconds: 10
   timeoutSeconds: 5
 
+monitoring:
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+
 affinity:
   nodeAffinity:
     requiredDuringSchedulingIgnoredDuringExecution:
