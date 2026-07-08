@@ -4,7 +4,7 @@ garage:
   existingRpcSecret: garage-rpc-secret
   s3:
     api:
-      region: "garage"
+      region: "garage-archive"
       rootDomain: "-s3-archive.internal.buc.balutoiu.com"
     web:
       rootDomain: ".archive.buc.balutoiu.com"
