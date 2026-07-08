@@ -1,0 +1,8 @@
+apiVersion: longhorn.io/v1beta2
+kind: BackupTarget
+metadata:
+  name: k3s-buc-garage-archive
+spec:
+  backupTargetURL: s3://longhorn-backups@garage/
+  credentialSecret: longhorn-backups-s3-creds-garage-archive
+  pollInterval: 5m0s
