@@ -84,28 +84,6 @@ configMaps:
               repo: rclone:onedrive-iony:restic-backups/k3s-buc/sea-pi_pvc_wireguard-config
               keep_last: 4
           ###
-          ### Backup PVC - garage/meta-garage-0
-          ###
-          - source:
-              type: lvm
-              vg_name: k8s-vg
-              lv_name: pvc-8918ae6d-63ab-45ba-9df8-4205e70cbb3c
-            destination:
-              type: restic
-              repo: rclone:onedrive-iony:restic-backups/k3s-buc/sea-pi_pvc_meta-garage-0
-              keep_last: 4
-          ###
-          ### Backup PVC - garage/data-garage-0
-          ###
-          - source:
-              type: lvm
-              vg_name: k8s-vg
-              lv_name: pvc-44dbc54f-ac36-4c3f-b703-ee68c173f6ab
-            destination:
-              type: restic
-              repo: rclone:onedrive-iony:restic-backups/k3s-buc/sea-pi_pvc_data-garage-0
-              keep_last: 1
-          ###
           ### Backup directory - /home
           ###
           - source:
