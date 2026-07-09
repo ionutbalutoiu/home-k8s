@@ -91,12 +91,11 @@ configMaps:
               type: longhorn_pvc
               pvc_name: www-balutoiu-www
               namespace: www-balutoiu
-              snapshot_class: longhorn-snapshot-vsc
+              snapshot_class: longhorn
             destination:
               type: restic
               repo: rclone:onedrive-iony:restic-backups/k3s-ceplea/hyper-ryzen_pvc_www-balutoiu-www
               keep_last: 4
-              group_by: paths
 
 rawResources:
   longhorn-runner-role:
