@@ -2,7 +2,6 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: home-backup-longhorn-runner
-  namespace: backup-cronjobs
 rules:
   - apiGroups:
       - ""
@@ -25,20 +24,11 @@ rules:
       - cronjobs
     verbs:
       - get
-  - apiGroups:
-      - snapshot.storage.k8s.io
-    resources:
-      - volumesnapshots
-    verbs:
-      - get
-      - create
-      - delete
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: home-backup-longhorn-runner
-  namespace: backup-cronjobs
 subjects:
   - kind: ServiceAccount
     name: backup-cronjobs
@@ -49,10 +39,9 @@ roleRef:
   name: home-backup-longhorn-runner
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
+kind: ClusterRole
 metadata:
-  name: home-backup-longhorn-source
-  namespace: www-balutoiu
+  name: home-backup-longhorn-snapshots
 rules:
   - apiGroups:
       - ""
@@ -64,33 +53,6 @@ rules:
       - snapshot.storage.k8s.io
     resources:
       - volumesnapshots
-    verbs:
-      - get
-      - create
-      - delete
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: home-backup-longhorn-source
-  namespace: www-balutoiu
-subjects:
-  - kind: ServiceAccount
-    name: backup-cronjobs
-    namespace: backup-cronjobs
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: home-backup-longhorn-source
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: home-backup-longhorn-snapshot-alias
-rules:
-  - apiGroups:
-      - snapshot.storage.k8s.io
-    resources:
       - volumesnapshotcontents
     verbs:
       - get
@@ -100,7 +62,7 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: home-backup-longhorn-snapshot-alias
+  name: home-backup-longhorn-snapshots
 subjects:
   - kind: ServiceAccount
     name: backup-cronjobs
@@ -108,4 +70,4 @@ subjects:
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: home-backup-longhorn-snapshot-alias
+  name: home-backup-longhorn-snapshots
