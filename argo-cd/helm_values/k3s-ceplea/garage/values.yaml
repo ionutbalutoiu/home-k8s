@@ -1,5 +1,8 @@
 garage:
   replicationFactor: "3"
+  metadataAutoSnapshotInterval: "6h"
+  additionalTopLevelConfig: |-
+    metadata_snapshots_dir = "/mnt/data/meta-snapshots"
   existingRpcSecret: garage-rpc-secret
   s3:
     api:
