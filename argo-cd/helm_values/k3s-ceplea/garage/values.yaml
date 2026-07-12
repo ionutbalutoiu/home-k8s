@@ -1,5 +1,6 @@
 garage:
   replicationFactor: "3"
+  metadataAutoSnapshotInterval: "6h"
   existingRpcSecret: garage-rpc-secret
   s3:
     api:
