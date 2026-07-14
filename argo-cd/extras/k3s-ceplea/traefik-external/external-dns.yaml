@@ -2,7 +2,7 @@
 apiVersion: externaldns.k8s.io/v1alpha1
 kind: DNSEndpoint
 metadata:
-  name: external-balutoiu-com
+  name: external-apex-balutoiu-com
 spec:
   endpoints:
     - dnsName: "balutoiu.com"
@@ -13,6 +13,13 @@ spec:
       targets:
         # Placeholder only; set the real target directly in the cluster.
         - 127.0.0.1
+---
+apiVersion: externaldns.k8s.io/v1alpha1
+kind: DNSEndpoint
+metadata:
+  name: external-wildcard-balutoiu-com
+spec:
+  endpoints:
     - dnsName: "*.balutoiu.com"
       recordType: A
       providerSpecific:

@@ -29,7 +29,12 @@ spec:
   ignoreDifferences:
     - group: externaldns.k8s.io
       kind: DNSEndpoint
-      name: apex-balutoiu-com
+      name: external-apex-balutoiu-com
+      jsonPointers:
+        - /spec/endpoints/0/targets
+    - group: externaldns.k8s.io
+      kind: DNSEndpoint
+      name: external-wildcard-balutoiu-com
       jsonPointers:
         - /spec/endpoints/0/targets
   syncPolicy:
