@@ -26,17 +26,10 @@ spec:
   destination:
     namespace: traefik-external
     server: https://kubernetes.default.svc
-  ignoreDifferences:
-    - group: externaldns.k8s.io
-      kind: DNSEndpoint
-      name: apex-balutoiu-com
-      jsonPointers:
-        - /spec/endpoints/0/targets
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
       - PruneLast=true
-      - RespectIgnoreDifferences=true
     automated:
       prune: true
       selfHeal: true

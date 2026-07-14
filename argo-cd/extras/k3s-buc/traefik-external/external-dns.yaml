@@ -9,9 +9,6 @@ spec:
       recordType: CNAME
       targets:
         - buc.balutoiu.com
-      providerSpecific:
-        - name: cloudflare-proxied
-          value: "true"
 ---
 apiVersion: externaldns.k8s.io/v1alpha1
 kind: DNSEndpoint
