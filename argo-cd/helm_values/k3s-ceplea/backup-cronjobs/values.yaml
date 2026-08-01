@@ -8,6 +8,7 @@ controllers:
     cronjob:
       timeZone: Etc/GMT+2 # Bucharest Timezone
       schedule: "0 14 * * 6" # Every Saturday at 14:00
+      concurrencyPolicy: Forbid
       backoffLimit: 0
       successfulJobsHistory: 7
       failedJobsHistory: 3
@@ -46,6 +47,7 @@ controllers:
           privileged: true
     pod:
       automountServiceAccountToken: true
+      terminationGracePeriodSeconds: 300
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
