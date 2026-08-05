@@ -28,7 +28,7 @@ controllers:
         image:
           repository: ghcr.io/ionutbalutoiu/home-backup
           pullPolicy: IfNotPresent
-          tag: 2.0.0
+          tag: 1.4.0
         command:
           - home-backup
         args:
