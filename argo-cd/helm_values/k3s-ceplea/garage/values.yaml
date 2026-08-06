@@ -16,7 +16,7 @@ persistence:
   enabled: true
   meta:
     storageClass: openebs-lvm-pv-thin-xfs
-    size: 512Mi
+    size: 2Gi
   data:
     storageClass: openebs-lvm-pv-thin-xfs
     size: 40Gi
