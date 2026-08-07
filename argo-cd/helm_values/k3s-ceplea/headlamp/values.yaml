@@ -5,6 +5,61 @@ resources:
     cpu: 2m
     memory: 96Mi
 
+podSecurityContext:
+  fsGroup: 101
+  fsGroupChangePolicy: OnRootMismatch
+  seccompProfile:
+    type: RuntimeDefault
+
+initContainers:
+  - name: install-headlamp-statefulset-orphan-plugin
+    image: alpine:3.24.1@sha256:28bd5fe8b56d1bd048e5babf5b10710ebe0bae67db86916198a6eec434943f8b
+    command:
+      - /bin/sh
+      - -ec
+    args:
+      - |
+        archive=/tmp/headlamp-statefulset-orphan-0.1.0.tar.gz
+        wget -qO "$archive" \
+          https://github.com/balutoiu/headlamp-statefulset-orphan/releases/download/v0.1.0/headlamp-statefulset-orphan-0.1.0.tar.gz
+        printf '%s  %s\n' \
+          8fc357efe754c0f6ebc799773ad9fb5abaae77518379a4a76b8f369ccffcc3cc \
+          "$archive" | sha256sum -c -
+        tar -xzf "$archive" -C /headlamp/plugins
+        test -s /headlamp/plugins/headlamp-statefulset-orphan/main.js
+    resources:
+      limits:
+        memory: 32Mi
+      requests:
+        cpu: 1m
+        memory: 8Mi
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - ALL
+      readOnlyRootFilesystem: true
+      runAsGroup: 101
+      runAsNonRoot: true
+      runAsUser: 100
+    volumeMounts:
+      - name: plugins-dir
+        mountPath: /headlamp/plugins
+      - name: plugin-installer-tmp
+        mountPath: /tmp
+
+volumeMounts:
+  - name: plugins-dir
+    mountPath: /headlamp/plugins
+    readOnly: true
+
+volumes:
+  - name: plugins-dir
+    emptyDir: {}
+  - name: plugin-installer-tmp
+    emptyDir:
+      sizeLimit: 8Mi
+
 config:
   #sessionTTL: 86400
   # Bypasses: https://github.com/kubernetes-sigs/headlamp/issues/4883
