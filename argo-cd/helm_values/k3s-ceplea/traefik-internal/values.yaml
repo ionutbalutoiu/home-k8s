@@ -1,13 +1,29 @@
 deployment:
   kind: Deployment
-  replicas: 3
+  replicas: 2
   annotations:
     reloader.stakater.com/auto: "true"
 
+podDisruptionBudget:
+  enabled: true
+  maxUnavailable: 1
+
+topologySpreadConstraints:
+  - labelSelector:
+      matchLabels:
+        app.kubernetes.io/name: '{{ template "traefik.name" . }}'
+        app.kubernetes.io/instance: '{{ template "traefik.instance-name" . }}'
+    matchLabelKeys:
+      - pod-template-hash
+    maxSkew: 1
+    topologyKey: kubernetes.io/hostname
+    whenUnsatisfiable: DoNotSchedule
+
 service:
-  type: LoadBalancer
   annotations:
     metallb.io/loadBalancerIPs: 10.119.20.30
+  spec:
+    type: LoadBalancer
 
 ports:
   traefiksecure:
@@ -84,8 +100,6 @@ volumes:
 ingressRoute:
   dashboard:
     enabled: true
-    annotations:
-      kubernetes.io/ingress.class: traefik-internal
     matchRule: Host(`traefik.internal.balutoiu.com`)
     entryPoints:
       - "traefiksecure"

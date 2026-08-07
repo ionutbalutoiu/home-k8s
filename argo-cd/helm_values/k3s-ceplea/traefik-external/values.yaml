@@ -1,13 +1,43 @@
 deployment:
   kind: Deployment
-  replicas: 3
+  replicas: 2
   annotations:
     reloader.stakater.com/auto: "true"
 
+podDisruptionBudget:
+  enabled: true
+  maxUnavailable: 1
+
+topologySpreadConstraints:
+  - labelSelector:
+      matchLabels:
+        app.kubernetes.io/name: '{{ template "traefik.name" . }}'
+        app.kubernetes.io/instance: '{{ template "traefik.instance-name" . }}'
+    matchLabelKeys:
+      - pod-template-hash
+    maxSkew: 1
+    topologyKey: kubernetes.io/hostname
+    whenUnsatisfiable: DoNotSchedule
+
 service:
-  type: LoadBalancer
   annotations:
     metallb.io/loadBalancerIPs: 10.119.20.20
+  spec:
+    type: LoadBalancer
+    externalTrafficPolicy: Local
+
+accessLog:
+  enabled: true
+  format: json
+  fields:
+    headers:
+      names:
+        User-Agent: keep
+        Referer: keep
+        X-Forwarded-For: keep
+        X-Real-Ip: keep
+    queryParameters:
+      defaultMode: drop
 
 ports:
   traefiksecure:
@@ -95,11 +125,11 @@ volumes:
 ingressRoute:
   dashboard:
     enabled: true
-    annotations:
-      kubernetes.io/ingress.class: traefik-external
     matchRule: Host(`traefik.balutoiu.com`)
     entryPoints:
       - "traefiksecure"
+    middlewares:
+      - name: dashboard-ip-allowlist
 
 resources:
   requests:
@@ -110,6 +140,7 @@ resources:
 
 metrics:
   prometheus:
+    addRoutersLabels: true
     service:
       enabled: true
     serviceMonitor:
@@ -118,20 +149,20 @@ metrics:
       enabled: true
       rules:
         - alert: TraefikServiceDown
-          expr: count(traefik_service_server_up) by (service) == 0
+          expr: max by (exported_service) (traefik_service_server_up) == 0
           for: 0m
           labels:
             severity: critical
           annotations:
             summary: "Traefik service down."
             description: >-
-              Traefik service down: `{{ $labels.service }}`."
+              Traefik service down: `{{ $labels.exported_service }}`.
 
         - alert: TraefikHighHttp4xxErrorRateService
           expr: |
             (
               sum by (exported_service) (
-                rate(traefik_service_requests_total{code=~"4.*"}[3m])
+                rate(traefik_service_requests_total{code=~"4.*",code!="499"}[3m])
               )
               /
               sum by (exported_service) (
@@ -152,6 +183,32 @@ metrics:
             summary: "Traefik high HTTP 4xx error rate service."
             description: >-
               Traefik service 4xx error rate is above 25% for service `{{ $labels.exported_service }}`. Current value is `{{ printf "%.2f" $value }}%`.
+
+        - alert: TraefikHighHttp499RateService
+          expr: |
+            (
+              sum by (exported_service) (
+                rate(traefik_service_requests_total{code="499"}[3m])
+              )
+              /
+              sum by (exported_service) (
+                rate(traefik_service_requests_total[3m])
+              )
+              * 100
+            ) > 25
+            and
+            (
+              sum by (exported_service) (
+                increase(traefik_service_requests_total[3m])
+              ) > 300
+            )
+          for: 1m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Traefik high HTTP 499 client-abort rate service."
+            description: >-
+              Traefik service 499 client-abort rate is above 25% for service `{{ $labels.exported_service }}`. Current value is `{{ printf "%.2f" $value }}%`.
 
         - alert: TraefikHighHttp5xxErrorRateService
           expr: |
