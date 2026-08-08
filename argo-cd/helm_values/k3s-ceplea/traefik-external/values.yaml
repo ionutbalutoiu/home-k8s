@@ -1,3 +1,6 @@
+global:
+  checkNewVersion: false
+
 deployment:
   kind: Deployment
   replicas: 2
