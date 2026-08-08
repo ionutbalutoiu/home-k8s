@@ -113,9 +113,11 @@ providers:
     watch: false
     content:
       tls:
-        certificates:
-          - certFile: /certs/wildcard-balutoiu-com/tls.crt
-            keyFile: /certs/wildcard-balutoiu-com/tls.key
+        stores:
+          default:
+            defaultCertificate:
+              certFile: /certs/wildcard-balutoiu-com/tls.crt
+              keyFile: /certs/wildcard-balutoiu-com/tls.key
 
 volumes:
   - name: le-wildcard-balutoiu-com-tls
