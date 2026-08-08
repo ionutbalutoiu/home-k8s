@@ -25,19 +25,6 @@ service:
   spec:
     type: LoadBalancer
 
-accessLog:
-  enabled: true
-  format: json
-  fields:
-    headers:
-      names:
-        User-Agent: keep
-        Referer: keep
-        X-Forwarded-For: keep
-        X-Real-Ip: keep
-    queryParameters:
-      defaultMode: drop
-
 ports:
   traefiksecure:
     port: 9443
