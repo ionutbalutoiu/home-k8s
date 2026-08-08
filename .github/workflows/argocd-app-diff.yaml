@@ -16,6 +16,7 @@ permissions:
 
 jobs:
   argocd-app-diff:
+    if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: home-ubuntu-k8s
 
     steps:
