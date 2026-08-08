@@ -5,9 +5,24 @@ deployment:
     reloader.stakater.com/auto: "true"
 
 service:
-  type: LoadBalancer
   annotations:
     metallb.io/loadBalancerIPs: 10.130.11.100
+  spec:
+    type: LoadBalancer
+    externalTrafficPolicy: Local
+
+accessLog:
+  enabled: true
+  format: json
+  fields:
+    headers:
+      names:
+        User-Agent: keep
+        Referer: keep
+        X-Forwarded-For: keep
+        X-Real-Ip: keep
+    queryParameters:
+      defaultMode: drop
 
 ports:
   traefiksecure:
@@ -58,11 +73,11 @@ volumes:
 ingressRoute:
   dashboard:
     enabled: true
-    annotations:
-      kubernetes.io/ingress.class: traefik-external
     matchRule: Host(`traefik.buc.balutoiu.com`)
     entryPoints:
       - "traefiksecure"
+    middlewares:
+      - name: dashboard-ip-allowlist
 
 resources:
   requests:
@@ -70,3 +85,101 @@ resources:
     memory: 96Mi
   limits:
     memory: 96Mi
+
+metrics:
+  prometheus:
+    addRoutersLabels: true
+    service:
+      enabled: true
+    serviceMonitor:
+      enabled: true
+    prometheusRule:
+      enabled: true
+      rules:
+        - alert: TraefikServiceDown
+          expr: max by (exported_service) (traefik_service_server_up) == 0
+          for: 0m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Traefik service down."
+            description: >-
+              Traefik service down: `{{ $labels.exported_service }}`.
+
+        - alert: TraefikHighHttp4xxErrorRateService
+          expr: |
+            (
+              sum by (exported_service) (
+                rate(traefik_service_requests_total{code=~"4.*",code!="499"}[3m])
+              )
+              /
+              sum by (exported_service) (
+                rate(traefik_service_requests_total[3m])
+              )
+              * 100
+            ) > 25
+            and
+            (
+              sum by (exported_service) (
+                increase(traefik_service_requests_total[3m])
+              ) > 300
+            )
+          for: 1m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Traefik high HTTP 4xx error rate service."
+            description: >-
+              Traefik service 4xx error rate is above 25% for service `{{ $labels.exported_service }}`. Current value is `{{ printf "%.2f" $value }}%`.
+
+        - alert: TraefikHighHttp499RateService
+          expr: |
+            (
+              sum by (exported_service) (
+                rate(traefik_service_requests_total{code="499"}[3m])
+              )
+              /
+              sum by (exported_service) (
+                rate(traefik_service_requests_total[3m])
+              )
+              * 100
+            ) > 25
+            and
+            (
+              sum by (exported_service) (
+                increase(traefik_service_requests_total[3m])
+              ) > 300
+            )
+          for: 1m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Traefik high HTTP 499 client-abort rate service."
+            description: >-
+              Traefik service 499 client-abort rate is above 25% for service `{{ $labels.exported_service }}`. Current value is `{{ printf "%.2f" $value }}%`.
+
+        - alert: TraefikHighHttp5xxErrorRateService
+          expr: |
+            (
+              sum by (exported_service) (
+                rate(traefik_service_requests_total{code=~"5.*"}[3m])
+              )
+              /
+              sum by (exported_service) (
+                rate(traefik_service_requests_total[3m])
+              )
+              * 100
+            ) > 5
+            and
+            (
+              sum by (exported_service) (
+                increase(traefik_service_requests_total[3m])
+              ) > 100
+            )
+          for: 1m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Traefik high HTTP 5xx error rate service."
+            description: >-
+              Traefik service 5xx error rate is above 5% for service `{{ $labels.exported_service }}`. Current value is `{{ printf "%.2f" $value }}%`.

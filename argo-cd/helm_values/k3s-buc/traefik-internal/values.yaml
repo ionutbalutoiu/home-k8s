@@ -5,9 +5,10 @@ deployment:
     reloader.stakater.com/auto: "true"
 
 service:
-  type: LoadBalancer
   annotations:
     metallb.io/loadBalancerIPs: 10.130.11.90
+  spec:
+    type: LoadBalancer
 
 ports:
   traefiksecure:
@@ -58,8 +59,6 @@ volumes:
 ingressRoute:
   dashboard:
     enabled: true
-    annotations:
-      kubernetes.io/ingress.class: traefik-internal
     matchRule: Host(`traefik.internal.buc.balutoiu.com`)
     entryPoints:
       - "traefiksecure"
