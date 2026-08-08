@@ -97,7 +97,7 @@ metrics:
       enabled: true
       rules:
         - alert: TraefikServiceDown
-          expr: max by (exported_service) (traefik_service_server_up) == 0
+          expr: max by (exported_service) (traefik_service_server_up{namespace="traefik-external"}) == 0
           for: 0m
           labels:
             severity: critical
@@ -110,18 +110,18 @@ metrics:
           expr: |
             (
               sum by (exported_service) (
-                rate(traefik_service_requests_total{code=~"4.*",code!="499"}[3m])
+                rate(traefik_service_requests_total{namespace="traefik-external",code=~"4.*",code!="499"}[3m])
               )
               /
               sum by (exported_service) (
-                rate(traefik_service_requests_total[3m])
+                rate(traefik_service_requests_total{namespace="traefik-external"}[3m])
               )
               * 100
             ) > 25
             and
             (
               sum by (exported_service) (
-                increase(traefik_service_requests_total[3m])
+                increase(traefik_service_requests_total{namespace="traefik-external"}[3m])
               ) > 300
             )
           for: 1m
@@ -136,18 +136,18 @@ metrics:
           expr: |
             (
               sum by (exported_service) (
-                rate(traefik_service_requests_total{code="499"}[3m])
+                rate(traefik_service_requests_total{namespace="traefik-external",code="499"}[3m])
               )
               /
               sum by (exported_service) (
-                rate(traefik_service_requests_total[3m])
+                rate(traefik_service_requests_total{namespace="traefik-external"}[3m])
               )
               * 100
             ) > 25
             and
             (
               sum by (exported_service) (
-                increase(traefik_service_requests_total[3m])
+                increase(traefik_service_requests_total{namespace="traefik-external"}[3m])
               ) > 300
             )
           for: 1m
@@ -162,18 +162,18 @@ metrics:
           expr: |
             (
               sum by (exported_service) (
-                rate(traefik_service_requests_total{code=~"5.*"}[3m])
+                rate(traefik_service_requests_total{namespace="traefik-external",code=~"5.*"}[3m])
               )
               /
               sum by (exported_service) (
-                rate(traefik_service_requests_total[3m])
+                rate(traefik_service_requests_total{namespace="traefik-external"}[3m])
               )
               * 100
             ) > 5
             and
             (
               sum by (exported_service) (
-                increase(traefik_service_requests_total[3m])
+                increase(traefik_service_requests_total{namespace="traefik-external"}[3m])
               ) > 100
             )
           for: 1m
