@@ -96,15 +96,35 @@ metrics:
     prometheusRule:
       enabled: true
       rules:
+        # `traefik_service_server_up` is only emitted for services configured with a
+        # healthcheck, which Gateway API HTTPRoutes cannot express. Detect unreachable
+        # backends via the gateway errors Traefik returns on its own behalf instead.
         - alert: TraefikServiceDown
-          expr: max by (exported_service) (traefik_service_server_up{namespace="traefik-external"}) == 0
-          for: 0m
+          expr: |
+            (
+              sum by (exported_service) (
+                increase(traefik_service_requests_total{namespace="traefik-external",code=~"50[234]"}[10m])
+              )
+              /
+              sum by (exported_service) (
+                increase(traefik_service_requests_total{namespace="traefik-external"}[10m])
+              )
+              * 100
+            ) > 50
+            and
+            (
+              sum by (exported_service) (
+                increase(traefik_service_requests_total{namespace="traefik-external",code=~"50[234]"}[10m])
+              ) >= 3
+            )
+          for: 2m
           labels:
             severity: critical
           annotations:
             summary: "Traefik service down."
             description: >-
-              Traefik service down: `{{ $labels.exported_service }}`.
+              Traefik cannot reach service `{{ $labels.exported_service }}`. Over 50% of
+              requests in the last 10m returned a gateway error (502/503/504). Current value is `{{ printf "%.2f" $value }}%`.
 
         - alert: TraefikHighHttp4xxErrorRateService
           expr: |
