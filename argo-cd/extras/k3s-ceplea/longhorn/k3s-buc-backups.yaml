@@ -1,11 +1,14 @@
-apiVersion: longhorn.io/v1beta2
-kind: RecurringJob
-metadata:
-  name: longhorn-k3s-buc-backups
-spec:
-  cron: "0 3 * * *"
-  task: backup
-  groups:
-    - k3s-buc-backups
-  retain: 3
-  concurrency: 2
+# Disabled: Longhorn backups to the k3s-buc garage-archive S3 target.
+# Uncomment to re-enable (needs k3s-buc-garage-archive-backup-target.yaml too).
+#
+# apiVersion: longhorn.io/v1beta2
+# kind: RecurringJob
+# metadata:
+#   name: longhorn-k3s-buc-backups
+# spec:
+#   cron: "0 3 * * *"
+#   task: backup
+#   groups:
+#     - k3s-buc-backups
+#   retain: 3
+#   concurrency: 2

@@ -11,11 +11,12 @@ spec:
     podAntiAffinityType: required
   enablePDB: true
 
-  plugins:
-    - name: barman-cloud.cloudnative-pg.io
-      isWALArchiver: true
-      parameters:
-        barmanObjectName: k3s-buc-s3
+  # Disabled: WAL archiving to the k3s-buc S3 backup store.
+  # plugins:
+  #   - name: barman-cloud.cloudnative-pg.io
+  #     isWALArchiver: true
+  #     parameters:
+  #       barmanObjectName: k3s-buc-s3
 
   postgresql:
     shared_preload_libraries:
@@ -42,39 +43,41 @@ spec:
   storage:
     size: 4Gi
     storageClass: openebs-lvm-pv-thin
----
-apiVersion: barmancloud.cnpg.io/v1
-kind: ObjectStore
-metadata:
-  name: k3s-buc-s3
-spec:
-  retentionPolicy: 7d
-  configuration:
-    destinationPath: s3://immich-db-backup/
-    endpointURL: https://s3.internal.buc.balutoiu.com
-    s3Credentials:
-      accessKeyId:
-        name: immich-db-backup-s3-creds
-        key: ACCESS_KEY_ID
-      secretAccessKey:
-        name: immich-db-backup-s3-creds
-        key: SECRET_ACCESS_KEY
-      region:
-        name: immich-db-backup-s3-creds
-        key: REGION
----
-apiVersion: postgresql.cnpg.io/v1
-kind: ScheduledBackup
-metadata:
-  name: k3s-buc-s3-postgres-backup
-spec:
-  cluster:
-    name: immich-postgres
-  schedule: '0 30 1 * * *' # Every day at 01:30 UTC
-  backupOwnerReference: self
-  method: plugin
-  pluginConfiguration:
-    name: barman-cloud.cloudnative-pg.io
+# Disabled: S3 backups to k3s-buc.
+# The immich-db-backup-s3-creds external secret is kept in place.
+# ---
+# apiVersion: barmancloud.cnpg.io/v1
+# kind: ObjectStore
+# metadata:
+#   name: k3s-buc-s3
+# spec:
+#   retentionPolicy: 7d
+#   configuration:
+#     destinationPath: s3://immich-db-backup/
+#     endpointURL: https://s3.internal.buc.balutoiu.com
+#     s3Credentials:
+#       accessKeyId:
+#         name: immich-db-backup-s3-creds
+#         key: ACCESS_KEY_ID
+#       secretAccessKey:
+#         name: immich-db-backup-s3-creds
+#         key: SECRET_ACCESS_KEY
+#       region:
+#         name: immich-db-backup-s3-creds
+#         key: REGION
+# ---
+# apiVersion: postgresql.cnpg.io/v1
+# kind: ScheduledBackup
+# metadata:
+#   name: k3s-buc-s3-postgres-backup
+# spec:
+#   cluster:
+#     name: immich-postgres
+#   schedule: '0 30 1 * * *' # Every day at 01:30 UTC
+#   backupOwnerReference: self
+#   method: plugin
+#   pluginConfiguration:
+#     name: barman-cloud.cloudnative-pg.io
 ---
 apiVersion: postgresql.cnpg.io/v1
 kind: Database
