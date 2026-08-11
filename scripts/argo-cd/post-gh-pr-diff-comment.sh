@@ -25,6 +25,10 @@ function get_modified_argo_app_files() {
     local PR_NUMBER="$1"
     # This extracts lines in the format "<CLUSTER_NAME>/<APP_NAME>" from the files modified in the pull request.
     gh pr diff --name-only $PR_NUMBER | grep -E "^argo-cd/apps/|^argo-cd/helm_values/|^argo-cd/extras/" | cut -d '/' -f3- | cut -d '/' -f1,2 | cut -d '.' -f1 | sort | uniq | while read line; do
+        CLUSTER_NAME="${line%%/*}"
+        if [[ -n "$ARGOCD_APP_DIFF_CLUSTERS" && " $ARGOCD_APP_DIFF_CLUSTERS " != *" $CLUSTER_NAME "* ]]; then
+            continue
+        fi
         APP_FILE="argo-cd/apps/${line}.yaml" && [[ -f $APP_FILE ]] && echo $APP_FILE
     done
 }
