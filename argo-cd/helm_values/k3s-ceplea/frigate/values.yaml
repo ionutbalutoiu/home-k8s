@@ -12,22 +12,6 @@ defaultPodOptions:
                 operator: In
                 values:
                   - hyper-ryzen
-                  - beelink-s12-pro-01
-      preferredDuringSchedulingIgnoredDuringExecution:
-        - weight: 100
-          preference:
-            matchExpressions:
-              - key: kubernetes.io/hostname
-                operator: In
-                values:
-                  - hyper-ryzen
-        - weight: 90
-          preference:
-            matchExpressions:
-              - key: kubernetes.io/hostname
-                operator: In
-                values:
-                  - beelink-s12-pro-01
 
 controllers:
   frigate:
@@ -385,10 +369,8 @@ persistence:
             subPath: config.yml
 
   database:
-    type: persistentVolumeClaim
-    accessMode: ReadWriteOnce
-    storageClass: longhorn-2r
-    size: 3Gi
+    type: hostPath
+    hostPath: /storage/ssd-nvme-raid0/pvc-shared/frigate
     advancedMounts:
       frigate:
         init-config:
