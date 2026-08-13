@@ -71,16 +71,6 @@ monitoring:
     serviceMonitor:
       enabled: true
 
-affinity:
-  nodeAffinity:
-    requiredDuringSchedulingIgnoredDuringExecution:
-      nodeSelectorTerms:
-        - matchExpressions:
-            - key: node_family
-              operator: In
-              values:
-                - beelink-s12-pro
-
 resources:
   requests:
     cpu: 20m
