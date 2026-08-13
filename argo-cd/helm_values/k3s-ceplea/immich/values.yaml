@@ -26,36 +26,6 @@ immich:
       existingClaim: pvc-immich
 
 server:
-  defaultPodOptions:
-    affinity: &affinity
-      nodeAffinity:
-        requiredDuringSchedulingIgnoredDuringExecution:
-          nodeSelectorTerms:
-            - matchExpressions:
-                - key: kubernetes.io/hostname
-                  operator: In
-                  values:
-                    - hyper-ryzen
-                    - beelink-s12-pro-01
-                    - beelink-s12-pro-02
-                    - beelink-s12-pro-03
-        preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: 100
-            preference:
-              matchExpressions:
-                - key: kubernetes.io/hostname
-                  operator: In
-                  values:
-                    - hyper-ryzen
-          - weight: 90
-            preference:
-              matchExpressions:
-                - key: kubernetes.io/hostname
-                  operator: In
-                  values:
-                    - beelink-s12-pro-01
-                    - beelink-s12-pro-02
-                    - beelink-s12-pro-03
   controllers:
     main:
       strategy: Recreate
@@ -111,8 +81,6 @@ server:
             - identifier: main
 
 machine-learning:
-  defaultPodOptions:
-    affinity: *affinity
   controllers:
     main:
       containers:
