@@ -1,5 +1,6 @@
 garage:
-  replicationFactor: "3"
+  dbEngine: "sqlite"
+  replicationFactor: "1"
   metadataAutoSnapshotInterval: "6h"
   additionalTopLevelConfig: |-
     metadata_snapshots_dir = "/mnt/data/meta-snapshots"
@@ -15,52 +16,20 @@ garage:
 persistence:
   enabled: true
   meta:
-    storageClass: openebs-lvm-pv-thin-xfs
+    storageClass: longhorn-2r-xfs
     size: 2Gi
   data:
-    storageClass: openebs-lvm-pv-thin-xfs
-    size: 40Gi
+    storageClass: longhorn-2r-xfs
+    size: 15Gi
 
 deployment:
   kind: StatefulSet
-  replicaCount: 3
-  # Required with the readiness probe: OrderedReady would deadlock a full
-  # cold restart (pod-0 needs quorum, but pod-1/pod-2 are never created).
-  podManagementPolicy: Parallel
+  replicaCount: 1
 
-# Static busybox mounted into the (shell-less) garage image, used by the
-# readiness probe below. Must be a statically linked variant (musl).
-extraVolumes:
-  - name: probe-tools
-    image:
-      reference: docker.io/library/busybox:1.38.0-musl
-      pullPolicy: IfNotPresent
-
-extraVolumeMounts:
-  - name: probe-tools
-    mountPath: /probe
-
-# Keep pods out of the Service until the node properly joined the cluster:
-# 1. the local node is in the CURRENT (applied) cluster layout — a merely
-#    assigned (staged) role must not count, and
-# 2. /health passes (layout synced and quorum reachable).
-# /health alone is not enough: it reports cluster-wide health, so a fresh
-# node that is connected but not yet in the layout would pass.
-# No livenessProbe on purpose: it would restart all pods on quorum loss.
 readinessProbe:
-  exec:
-    command:
-      - /probe/bin/busybox
-      - sh
-      - -ec
-      - |
-        ID="$(/garage node id -q 2>/dev/null | /probe/bin/busybox cut -c1-16)"
-        [ -n "$ID" ]
-        /garage layout show 2>/dev/null | /probe/bin/busybox awk -v id="$ID" '
-          /^Current cluster layout version:/ { exit }
-          $1 == id { found=1 }
-          END { exit !found }'
-        /probe/bin/busybox wget -q -T 3 -O /dev/null http://127.0.0.1:3903/health
+  httpGet:
+    path: /health
+    port: 3903
   initialDelaySeconds: 5
   periodSeconds: 10
   timeoutSeconds: 5
