@@ -89,15 +89,18 @@ configMaps:
           ###
           ### Backup PVC - www-balutoiu/www-balutoiu-www
           ###
-          - source:
-              type: longhorn_pvc
-              pvc_name: www-balutoiu-www
-              namespace: www-balutoiu
-              snapshot_class: longhorn
-            destination:
-              type: restic
-              repo: rclone:onedrive-iony:restic-backups/k3s-ceplea/hyper-ryzen_pvc_www-balutoiu-www
-              keep_last: 4
+          # Disabled: Longhorn CSI snapshot creation requires an available backup target
+          # (none configured since the k3s-buc S3 decommission). Uncomment to re-enable
+          # once a backup target is restored (1Password creds + garage bucket/keys).
+          # - source:
+          #     type: longhorn_pvc
+          #     pvc_name: www-balutoiu-www
+          #     namespace: www-balutoiu
+          #     snapshot_class: longhorn
+          #   destination:
+          #     type: restic
+          #     repo: rclone:onedrive-iony:restic-backups/k3s-ceplea/hyper-ryzen_pvc_www-balutoiu-www
+          #     keep_last: 4
 
 persistence:
   host-root:
