@@ -26,6 +26,8 @@ metrics:
   serviceMonitor:
     enabled: true
 
-defaultBackupStore:
-  backupTarget: s3://longhorn-backups@garage/
-  backupTargetCredentialSecret: longhorn-backups-s3-creds
+# Disabled: S3 backups to the k3s-buc garage-archive target.
+# Uncomment to re-enable (needs the matching 1Password creds for the new target).
+# defaultBackupStore:
+#   backupTarget: s3://longhorn-backups@garage/
+#   backupTargetCredentialSecret: longhorn-backups-s3-creds
