@@ -26,6 +26,14 @@ metrics:
   serviceMonitor:
     enabled: true
 
+# Longhorn chart 1.12.1+ renders 6 NetworkPolicies from
+# networkPolicies.restrictInternalTraffic (default true), which blocks
+# cross-namespace metrics scraping of longhorn-manager (upstream longhorn#13740).
+# This cluster does not use NetworkPolicies; keep all of them disabled.
+networkPolicies:
+  enabled: false
+  restrictInternalTraffic: false
+
 # Disabled: S3 backups to the k3s-buc garage-archive target.
 # Uncomment to re-enable (needs the matching 1Password creds for the new target).
 # defaultBackupStore:
