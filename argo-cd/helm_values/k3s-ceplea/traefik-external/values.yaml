@@ -167,7 +167,7 @@ metrics:
           expr: |
             (
               sum by (exported_service) (
-                rate(traefik_service_requests_total{namespace="traefik-external",code=~"4.*",code!="499"}[3m])
+                rate(traefik_service_requests_total{namespace="traefik-external",code=~"4.*",code!~"499|429"}[3m])
               )
               /
               sum by (exported_service) (
