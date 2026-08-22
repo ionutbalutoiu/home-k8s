@@ -1,9 +1,0 @@
-reloader:
-  deployment:
-    replicas: 1
-    resources:
-      requests:
-        cpu: 3m
-        memory: 64Mi
-      limits:
-        memory: 64Mi
