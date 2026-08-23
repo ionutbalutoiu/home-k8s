@@ -352,7 +352,7 @@ persistence:
 
   garm-etc:
     type: persistentVolumeClaim
-    storageClass: longhorn-2r
+    storageClass: openebs-lvm-pv-thin
     accessMode: ReadWriteOnce
     size: 3Gi
     advancedMounts:
