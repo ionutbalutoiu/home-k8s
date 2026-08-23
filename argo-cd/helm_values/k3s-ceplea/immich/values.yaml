@@ -8,7 +8,7 @@ valkey:
       size: 1Gi
       type: persistentVolumeClaim
       accessMode: ReadWriteOnce
-      storageClass: longhorn-2r
+      storageClass: openebs-lvm-pv-thin
   controllers:
     main:
       containers:
