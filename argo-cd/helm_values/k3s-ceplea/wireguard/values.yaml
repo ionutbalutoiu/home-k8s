@@ -103,7 +103,7 @@ persistence:
   config:
     type: persistentVolumeClaim
     accessMode: ReadWriteOnce
-    storageClass: longhorn-2r
+    storageClass: openebs-lvm-pv-thin
     size: 128Mi
     advancedMounts:
       wireguard:
