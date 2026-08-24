@@ -1,14 +1,11 @@
 reloader:
-  enableHA: true
+  enableHA: false
 
   deployment:
-    replicas: 2
+    replicas: 1
     resources:
       requests:
         cpu: 5m
         memory: 96Mi
       limits:
         memory: 128Mi
-  podDisruptionBudget:
-    enabled: true
-    maxUnavailable: 1
