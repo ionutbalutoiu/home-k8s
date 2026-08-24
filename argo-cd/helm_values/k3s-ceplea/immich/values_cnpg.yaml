@@ -11,7 +11,7 @@ imageCatalog:
       image: ghcr.io/tensorchord/cloudnative-vectorchord:16.14-1.1.1@sha256:4a26ca6aad2482289f4a3d3317ccbf1439ce3de140994598375a1f4c4e2e9f8d
 
 cluster:
-  instances: 2
+  instances: 1
   imageCatalogRef:
     kind: ImageCatalog
     name: immich-postgres
@@ -26,11 +26,8 @@ cluster:
     size: 5Gi
     storageClass: openebs-lvm-pv-thin
   enableSuperuserAccess: false
-  enablePDB: true
-  affinity:
-    enablePodAntiAffinity: true
-    topologyKey: kubernetes.io/hostname
-    podAntiAffinityType: required
+  # A single instance cannot switch over, so a PDB would only block node drains.
+  enablePDB: false
   postgresql:
     shared_preload_libraries:
       - vchord.so
