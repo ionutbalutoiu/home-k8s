@@ -23,7 +23,7 @@ valkey:
 immich:
   persistence:
     library:
-      existingClaim: pvc-immich
+      existingClaim: immich-data
 
 server:
   controllers:
