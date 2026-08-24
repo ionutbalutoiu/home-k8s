@@ -19,11 +19,11 @@ cluster:
   resources:
     requests:
       cpu: 25m
-      memory: 1Gi
+      memory: 2Gi
     limits:
-      memory: 1Gi
+      memory: 2Gi
   storage:
-    size: 4Gi
+    size: 5Gi
     storageClass: openebs-lvm-pv-thin
   enableSuperuserAccess: false
   enablePDB: true
