@@ -46,7 +46,6 @@ controllers:
         securityContext:
           privileged: true
     pod:
-      automountServiceAccountToken: true
       terminationGracePeriodSeconds: 300
       affinity:
         nodeAffinity:
@@ -85,18 +84,6 @@ configMaps:
             destination:
               type: restic
               repo: rclone:onedrive-iony:restic-backups/k3s-ceplea/hyper-ryzen_lv_home
-              keep_last: 4
-          ###
-          ### Backup PVC - www-balutoiu/www-balutoiu-www
-          ###
-          - source:
-              type: longhorn_pvc
-              pvc_name: www-balutoiu-www
-              namespace: www-balutoiu
-              snapshot_class: longhorn
-            destination:
-              type: restic
-              repo: rclone:onedrive-iony:restic-backups/k3s-ceplea/hyper-ryzen_pvc_www-balutoiu-www
               keep_last: 4
 
 persistence:
