@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: MIT
 
-FROM ghcr.io/actions/actions-runner:2.336.0
+FROM ghcr.io/actions/actions-runner:2.337.0
 
 USER root
 
