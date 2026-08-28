@@ -29,7 +29,7 @@ jobs:
         shell: bash
         env:
           # renovate: datasource=github-releases depName=argocd-cli packageName=argoproj/argo-cd
-          ARGOCD_VERSION: v3.5.1
+          ARGOCD_VERSION: v3.5.2
           # renovate: datasource=github-releases depName=gh packageName=cli/cli
           GH_VERSION: v2.98.0
           # renovate: datasource=github-releases depName=yq packageName=mikefarah/yq
