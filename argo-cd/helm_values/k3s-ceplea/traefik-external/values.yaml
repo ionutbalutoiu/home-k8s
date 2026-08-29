@@ -10,6 +10,9 @@ deployment:
 service:
   annotations:
     metallb.io/loadBalancerIPs: 10.119.20.20
+    # Dashboard only, reached over the VPN on the traefiksecure port. Public
+    # hosts are CNAMEs to the apex instead.
+    external-dns.alpha.kubernetes.io/hostname: traefik.balutoiu.com
   spec:
     type: LoadBalancer
     externalTrafficPolicy: Local

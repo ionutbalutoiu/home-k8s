@@ -10,6 +10,8 @@ deployment:
 service:
   annotations:
     metallb.io/loadBalancerIPs: 10.119.20.30
+    # Every internal host resolves here; apps need no DNS records of their own.
+    external-dns.alpha.kubernetes.io/hostname: "*.internal.balutoiu.com"
   spec:
     type: LoadBalancer
 
