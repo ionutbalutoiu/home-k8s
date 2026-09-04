@@ -1,9 +1,9 @@
 resources:
   requests:
     cpu: 3m
-    memory: 128Mi
+    memory: 192Mi
   limits:
-    memory: 128Mi
+    memory: 192Mi
 
 webhook:
   resources:
