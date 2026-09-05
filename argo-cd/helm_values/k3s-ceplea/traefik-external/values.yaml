@@ -10,9 +10,8 @@ deployment:
 service:
   annotations:
     metallb.io/loadBalancerIPs: 10.119.20.20
-    # Dashboard only, reached over the VPN on the traefiksecure port. Public
-    # hosts are CNAMEs to the apex instead.
-    external-dns.alpha.kubernetes.io/hostname: traefik.balutoiu.com
+    # No DNS name of its own. Public hosts are CNAMEs to the apex, and the
+    # dashboard is served through traefik-internal under the internal wildcard.
   spec:
     type: LoadBalancer
     externalTrafficPolicy: Local
@@ -31,13 +30,6 @@ accessLog:
       defaultMode: drop
 
 ports:
-  traefiksecure:
-    port: 9443
-    expose:
-      default: true
-    http:
-      tls:
-        enabled: true
   web:
     http:
       redirections:
@@ -115,14 +107,35 @@ volumes:
     mountPath: "/certs/wildcard-balutoiu-com"
     type: secret
 
+# The dashboard listens on the unexposed traefik entrypoint; the HTTPRoute in
+# extras carries it through traefik-internal, which is the only way in.
 ingressRoute:
   dashboard:
     enabled: true
-    matchRule: Host(`traefik.balutoiu.com`)
+    matchRule: Host(`traefik-external.internal.balutoiu.com`)
     entryPoints:
-      - "traefiksecure"
-    middlewares:
-      - name: dashboard-ip-allowlist
+      - "traefik"
+
+# Gives the HTTPRoute a backend for the traefik entrypoint, which the
+# LoadBalancer service does not publish.
+extraObjects:
+  - |
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: {{ template "traefik.fullname" . }}-dashboard
+      namespace: {{ template "traefik.namespace" . }}
+      labels:
+        {{- include "traefik.labels" . | nindent 4 }}
+    spec:
+      type: ClusterIP
+      selector:
+        {{- include "traefik.labelselector" . | nindent 4 }}
+      ports:
+        - name: traefik
+          port: 8080
+          targetPort: traefik
+          protocol: TCP
 
 resources:
   requests:
