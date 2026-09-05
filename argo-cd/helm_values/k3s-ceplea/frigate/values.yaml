@@ -142,6 +142,12 @@ route:
               type: PathPrefix
               value: /
         filters:
+          # Rate limit first, so floods never reach Authelia.
+          - type: ExtensionRef
+            extensionRef:
+              group: traefik.io
+              kind: Middleware
+              name: rate-limit
           - type: ExtensionRef
             extensionRef:
               group: traefik.io

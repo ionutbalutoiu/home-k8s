@@ -76,6 +76,11 @@ server:
               extensionRef:
                 group: traefik.io
                 kind: Middleware
+                name: rate-limit
+            - type: ExtensionRef
+              extensionRef:
+                group: traefik.io
+                kind: Middleware
                 name: security-headers
           backendRefs:
             - identifier: main

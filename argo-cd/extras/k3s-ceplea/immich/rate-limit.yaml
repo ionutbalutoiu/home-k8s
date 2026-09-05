@@ -1,0 +1,12 @@
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: rate-limit
+spec:
+  # Generous: timeline thumbnails and mobile backups arrive in bursts, and a
+  # household shares one source IP.
+  rateLimit:
+    average: 50
+    burst: 200
+    period: 1s
