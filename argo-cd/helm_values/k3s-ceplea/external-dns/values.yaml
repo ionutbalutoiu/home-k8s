@@ -21,6 +21,8 @@ env:
 
 extraArgs:
   - --txt-wildcard-replacement=asterisk
+  # Shows the owner in the Cloudflare dashboard, next to the ddns node names.
+  - --cloudflare-record-comment=external-dns k3s-ceplea
 
 resources:
   requests:
