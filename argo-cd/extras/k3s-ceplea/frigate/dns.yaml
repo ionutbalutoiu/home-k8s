@@ -8,4 +8,4 @@ spec:
     - dnsName: frigate.balutoiu.com
       recordType: CNAME
       targets:
-        - balutoiu.com
+        - balutoiu-ceplea.go.ro
