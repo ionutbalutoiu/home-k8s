@@ -5,8 +5,9 @@ metadata:
   name: rate-limit
 spec:
   # Generous: timeline thumbnails and mobile backups arrive in bursts, and a
-  # household shares one source IP.
+  # household shares one source IP. A web timeline load was measured at
+  # 137 requests in one second and 343 in ten.
   rateLimit:
     average: 50
-    burst: 200
+    burst: 400
     period: 1s
