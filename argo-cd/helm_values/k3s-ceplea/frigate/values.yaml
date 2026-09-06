@@ -199,8 +199,12 @@ configMaps:
           motion:
             days: 14
 
+        # NOTE: The UI ignores the order of the camera_groups lists and sorts
+        # every group by ui.order instead, so each camera gets an explicit one.
         cameras:
           1ceplea_poarta:
+            ui:
+              order: 10
             detect:
               enabled: false
             ffmpeg:
@@ -209,6 +213,8 @@ configMaps:
                   roles:
                     - record
           2ceplea_poarta_tataie:
+            ui:
+              order: 20
             detect:
               enabled: false
             ffmpeg:
@@ -217,6 +223,8 @@ configMaps:
                   roles:
                     - record
           3ceplea_tataie_gaini:
+            ui:
+              order: 30
             detect:
               enabled: false
             ffmpeg:
@@ -225,6 +233,8 @@ configMaps:
                   roles:
                     - record
           4ceplea_curte_fata:
+            ui:
+              order: 40
             detect:
               enabled: false
             ffmpeg:
@@ -233,6 +243,8 @@ configMaps:
                   roles:
                     - record
           5ceplea_curte_spate:
+            ui:
+              order: 50
             detect:
               enabled: false
             ffmpeg:
@@ -241,6 +253,8 @@ configMaps:
                   roles:
                     - record
           6ceplea_gradina:
+            ui:
+              order: 60
             detect:
               enabled: false
             ffmpeg:
@@ -249,6 +263,8 @@ configMaps:
                   roles:
                     - record
           7floresti_poarta:
+            ui:
+              order: 70
             detect:
               enabled: false
             ffmpeg:
@@ -257,6 +273,8 @@ configMaps:
                   roles:
                     - record
           8floresti_curte_fata:
+            ui:
+              order: 80
             detect:
               enabled: false
             ffmpeg:
@@ -265,6 +283,8 @@ configMaps:
                   roles:
                     - record
           9floresti_gaini:
+            ui:
+              order: 90
             detect:
               enabled: false
             ffmpeg:
@@ -274,6 +294,8 @@ configMaps:
                     - record
           # NOTE: Kept out of Birdseye, so it stays a 3x3 grid of the first 9 cameras.
           10ceplea_casuta_tataie:
+            ui:
+              order: 65
             birdseye:
               enabled: false
             detect:
