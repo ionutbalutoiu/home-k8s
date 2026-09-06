@@ -161,7 +161,7 @@ configMaps:
   config:
     data:
       config.yml: |
-        version: 0.16-0
+        version: 0.17-0
 
         mqtt:
           enabled: false
@@ -194,9 +194,10 @@ configMaps:
 
         record:
           enabled: true
-          retain:
+          continuous:
             days: 14
-            mode: all
+          motion:
+            days: 14
 
         cameras:
           1ceplea_poarta:
@@ -271,6 +272,18 @@ configMaps:
                 - path: rtsp://{FRIGATE_FLORESTI_GAINI_USER}:{FRIGATE_FLORESTI_GAINI_PASSWORD}@frigate-wg-proxy.frigate.svc.cluster.local:5543//stream1
                   roles:
                     - record
+          # NOTE: Kept out of Birdseye, so it stays a 3x3 grid of the first 9 cameras.
+          10ceplea_casuta_tataie:
+            birdseye:
+              enabled: false
+            detect:
+              enabled: false
+            ffmpeg:
+              inputs:
+                - path: rtsp://{FRIGATE_CEPLEA_CASUTA_TATAIE_USER}:{FRIGATE_CEPLEA_CASUTA_TATAIE_PASSWORD}@10.101.101.25:554/stream1
+                  roles:
+                    - record
+            friendly_name: 10ceplea casuta tataie
 
         camera_groups:
           Birdseye:
@@ -289,8 +302,23 @@ configMaps:
               - 6ceplea_gradina
           Floresti:
             order: 3
-            icon: LuHome
+            icon: LuWarehouse
             cameras:
+              - 7floresti_poarta
+              - 8floresti_curte_fata
+              - 9floresti_gaini
+          # NOTE: Same layout as the Birdseye grid, with 6ceplea_gradina swapped
+          # out for 10ceplea_casuta_tataie.
+          Camere_Tati:
+            order: 4
+            icon: LuMonitor
+            cameras:
+              - 1ceplea_poarta
+              - 2ceplea_poarta_tataie
+              - 3ceplea_tataie_gaini
+              - 4ceplea_curte_fata
+              - 5ceplea_curte_spate
+              - 10ceplea_casuta_tataie
               - 7floresti_poarta
               - 8floresti_curte_fata
               - 9floresti_gaini
