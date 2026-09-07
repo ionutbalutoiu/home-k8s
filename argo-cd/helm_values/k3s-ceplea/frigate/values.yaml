@@ -198,10 +198,9 @@ configMaps:
           height: 1080
           quality: 8
           mode: continuous
-          # NOTE: Publishes Birdseye through go2rtc as H.264 (VAAPI encoded), so
-          # the kiosk browsers play it via MSE with hardware decoding instead of
-          # decoding MPEG-1 in JavaScript (jsmpeg).
-          restream: true
+          # NOTE: Keep restream off. With the AMD VAAPI encoder, ffmpeg gets no
+          # SPS/PPS extradata, go2rtc then advertises a 128x96 track, and MSE
+          # players (the kiosk browsers) render Birdseye stretched to 4:3.
 
         record:
           enabled: true
