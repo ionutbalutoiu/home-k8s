@@ -35,7 +35,7 @@ controllers:
             memory: 32Mi
     containers:
       frigate:
-        image:
+        image: &frigate_image
           repository: ghcr.io/blakeblackshear/frigate
           pullPolicy: IfNotPresent
           tag: 0.17.2
@@ -50,6 +50,44 @@ controllers:
             memory: 10Gi
           limits:
             memory: 10Gi
+
+  # NOTE: A second, compositor-only Frigate. It pulls the Tapo sub-streams
+  # (stream2) of the Camere_Tati cameras and only produces a Birdseye restream
+  # for the eye-pi kiosk (10.119.1.105), played with mpv over RTSP. No
+  # recording, no motion, no detection.
+  birdseye-pi-eye:
+    strategy: Recreate
+    initContainers:
+      init-config:
+        image:
+          repository: busybox
+          pullPolicy: IfNotPresent
+          tag: 1.38.0
+        command:
+          - cp
+        args:
+          - /config.yml
+          - /config/config.yml
+        resources:
+          requests:
+            cpu: 1m
+            memory: 32Mi
+          limits:
+            memory: 32Mi
+    containers:
+      frigate:
+        image: *frigate_image
+        envFrom:
+          - secretRef:
+              name: frigate-secrets
+        securityContext:
+          privileged: true
+        resources:
+          requests:
+            cpu: 500m
+            memory: 2Gi
+          limits:
+            memory: 3Gi
 
   wg-proxy:
     strategy: Recreate
@@ -111,6 +149,20 @@ service:
     ports:
       http:
         port: 5000
+  birdseye-pi-eye:
+    controller: birdseye-pi-eye
+    type: LoadBalancer
+    annotations:
+      metallb.io/loadBalancerIPs: 10.119.20.12
+    ports:
+      # NOTE: The web UI is only for debugging. Its Birdseye page renders
+      # stretched in browsers because the AMD VAAPI encoder gives go2rtc no
+      # SPS/PPS headers. The kiosk plays the RTSP stream instead.
+      http:
+        port: 5000
+      # go2rtc RTSP: rtsp://10.119.20.12:8554/birdseye
+      rtsp:
+        port: 8554
   wg-proxy:
     controller: wg-proxy
     type: ClusterIP
@@ -355,6 +407,129 @@ configMaps:
               - 8floresti_curte_fata
               - 9floresti_gaini
 
+  birdseye-pi-eye-config:
+    data:
+      config.yml: |
+        version: 0.17-0
+
+        mqtt:
+          enabled: false
+
+        detectors:
+          cpu:
+            type: cpu
+
+        logger:
+          default: info
+
+        # NOTE: Tapo stream2 is 640x360, which drops straight into the 3x3
+        # Birdseye tiles of a 1920x1080 canvas without resizing. Birdseye output
+        # is capped at 10 fps by Frigate.
+        detect:
+          enabled: false
+          width: 640
+          height: 360
+          fps: 10
+
+        motion:
+          enabled: false
+
+        record:
+          enabled: false
+
+        snapshots:
+          enabled: false
+
+        ffmpeg:
+          hwaccel_args: preset-vaapi
+
+        birdseye:
+          enabled: true
+          width: 1920
+          height: 1080
+          mode: continuous
+          # Published by go2rtc as rtsp://<service ip>:8554/birdseye (H.264,
+          # VAAPI encoded). Play it with a native RTSP client (mpv), not a
+          # browser: see the service note.
+          restream: true
+
+        # NOTE: Same layout as the Camere_Tati group of the main Frigate, with
+        # 10ceplea_casuta_tataie in place of 6ceplea_gradina. Birdseye tiles are
+        # ordered by birdseye.order.
+        cameras:
+          1ceplea_poarta:
+            birdseye:
+              order: 1
+            ffmpeg:
+              inputs:
+                - path: rtsp://{FRIGATE_CEPLEA_POARTA_USER}:{FRIGATE_CEPLEA_POARTA_PASSWORD}@10.101.101.173:554/stream2
+                  roles:
+                    - detect
+          2ceplea_poarta_tataie:
+            birdseye:
+              order: 2
+            ffmpeg:
+              inputs:
+                - path: rtsp://{FRIGATE_CEPLEA_POARTA_TATAIE_USER}:{FRIGATE_CEPLEA_POARTA_TATAIE_PASSWORD}@10.101.101.136:554/stream2
+                  roles:
+                    - detect
+          3ceplea_tataie_gaini:
+            birdseye:
+              order: 3
+            ffmpeg:
+              inputs:
+                - path: rtsp://{FRIGATE_CEPLEA_TATAIE_GAINI_USER}:{FRIGATE_CEPLEA_TATAIE_GAINI_PASSWORD}@10.101.101.41:554/stream2
+                  roles:
+                    - detect
+          4ceplea_curte_fata:
+            birdseye:
+              order: 4
+            ffmpeg:
+              inputs:
+                - path: rtsp://{FRIGATE_CEPLEA_CURTE_FATA_USER}:{FRIGATE_CEPLEA_CURTE_FATA_PASSWORD}@10.101.101.253:554/stream2
+                  roles:
+                    - detect
+          5ceplea_curte_spate:
+            birdseye:
+              order: 5
+            ffmpeg:
+              inputs:
+                - path: rtsp://{FRIGATE_CEPLEA_CURTE_SPATE_USER}:{FRIGATE_CEPLEA_CURTE_SPATE_PASSWORD}@10.102.102.81:554/stream2
+                  roles:
+                    - detect
+          10ceplea_casuta_tataie:
+            birdseye:
+              order: 6
+            ffmpeg:
+              inputs:
+                - path: rtsp://{FRIGATE_CEPLEA_CASUTA_TATAIE_USER}:{FRIGATE_CEPLEA_CASUTA_TATAIE_PASSWORD}@10.101.101.25:554/stream2
+                  roles:
+                    - detect
+          7floresti_poarta:
+            birdseye:
+              order: 7
+            ffmpeg:
+              inputs:
+                - path: rtsp://{FRIGATE_FLORESTI_POARTA_USER}:{FRIGATE_FLORESTI_POARTA_PASSWORD}@frigate-wg-proxy.frigate.svc.cluster.local:5541/stream2
+                  roles:
+                    - detect
+          8floresti_curte_fata:
+            birdseye:
+              order: 8
+            ffmpeg:
+              inputs:
+                - path: rtsp://{FRIGATE_FLORESTI_CURTE_FATA_USER}:{FRIGATE_FLORESTI_CURTE_FATA_PASSWORD}@frigate-wg-proxy.frigate.svc.cluster.local:5542/stream2
+                  roles:
+                    - detect
+          9floresti_gaini:
+            birdseye:
+              order: 9
+            ffmpeg:
+              inputs:
+                - path: rtsp://{FRIGATE_FLORESTI_GAINI_USER}:{FRIGATE_FLORESTI_GAINI_PASSWORD}@frigate-wg-proxy.frigate.svc.cluster.local:5543/stream2
+                  roles:
+                    - detect
+
   wg-proxy-dnat:
     data:
       setup.sh: |
@@ -439,6 +614,54 @@ persistence:
     hostPath: /storage/ssd-nvme-raid0/pvc-shared/frigate
     advancedMounts:
       frigate:
+        init-config:
+          - path: /config
+        frigate:
+          - path: /config
+
+  # NOTE: Nothing in the birdseye-pi-eye Frigate is worth persisting: no
+  # recordings, and the sqlite DB only holds state we do not use.
+  birdseye-pi-eye-dshm:
+    type: emptyDir
+    medium: Memory
+    sizeLimit: 256Mi
+    advancedMounts:
+      birdseye-pi-eye:
+        frigate:
+          - path: /dev/shm
+
+  birdseye-pi-eye-tmp-cache:
+    type: emptyDir
+    medium: Memory
+    sizeLimit: 256Mi
+    advancedMounts:
+      birdseye-pi-eye:
+        frigate:
+          - path: /tmp/cache
+
+  birdseye-pi-eye-media:
+    type: emptyDir
+    sizeLimit: 1Gi
+    advancedMounts:
+      birdseye-pi-eye:
+        frigate:
+          - path: /media/frigate
+
+  birdseye-pi-eye-config:
+    type: configMap
+    identifier: birdseye-pi-eye-config
+    advancedMounts:
+      birdseye-pi-eye:
+        init-config:
+          - path: /config.yml
+            readOnly: true
+            subPath: config.yml
+
+  birdseye-pi-eye-data:
+    type: emptyDir
+    sizeLimit: 1Gi
+    advancedMounts:
+      birdseye-pi-eye:
         init-config:
           - path: /config
         frigate:
