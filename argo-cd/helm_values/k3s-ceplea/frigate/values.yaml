@@ -175,10 +175,17 @@ configMaps:
 
         detect:
           enabled: false
-          # NOTE: The settings below apply for the live cameras feed.
+          # NOTE: The settings below apply for the live cameras feed. Birdseye
+          # output is capped at 10 fps by Frigate, so decoding faster than that
+          # only burns CPU.
           width: 1280
           height: 720
-          fps: 15
+          fps: 10
+
+        # NOTE: Recording is continuous and object detection is off, so motion
+        # detection would only cost CPU on every decoded frame.
+        motion:
+          enabled: false
 
         ffmpeg:
           hwaccel_args: preset-vaapi
@@ -191,6 +198,10 @@ configMaps:
           height: 1080
           quality: 8
           mode: continuous
+          # NOTE: Publishes Birdseye through go2rtc as H.264 (VAAPI encoded), so
+          # the kiosk browsers play it via MSE with hardware decoding instead of
+          # decoding MPEG-1 in JavaScript (jsmpeg).
+          restream: true
 
         record:
           enabled: true
