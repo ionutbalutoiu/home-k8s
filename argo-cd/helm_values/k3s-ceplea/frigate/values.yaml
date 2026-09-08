@@ -448,11 +448,9 @@ configMaps:
         # at 15:29 the GPU reset failed. Every VAAPI ffmpeg on the node was then
         # stuck in the kernel until a hard reset. The CPU decodes nine 640x360
         # streams at 10 fps without noticing.
-        # hwaccel_args defaults to "auto", and the privileged container can see
-        # /dev/dri, so leaving the key out still picks VAAPI. The empty list
-        # turns it off.
-        ffmpeg:
-          hwaccel_args: []
+        # hwaccel_args is left unset. Its default is "auto", which finds no GPU
+        # in this unprivileged container. Setting it to [] instead crashes the
+        # go2rtc config generator in Frigate 0.17.2 and kills the restream.
 
         birdseye:
           enabled: true
