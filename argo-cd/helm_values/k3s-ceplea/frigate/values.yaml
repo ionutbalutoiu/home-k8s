@@ -84,7 +84,8 @@ controllers:
           privileged: true
         resources:
           requests:
-            cpu: 500m
+            # Software decode of 9 sub-streams plus the libx264 Birdseye encode.
+            cpu: 1
             memory: 2Gi
           limits:
             memory: 3Gi
@@ -155,9 +156,10 @@ service:
     annotations:
       metallb.io/loadBalancerIPs: 10.119.20.12
     ports:
-      # NOTE: The web UI is only for debugging. Its Birdseye page renders
-      # stretched in browsers because the AMD VAAPI encoder gives go2rtc no
-      # SPS/PPS headers. The kiosk plays the RTSP stream instead.
+      # NOTE: The web UI is only for debugging. Its Birdseye page rendered
+      # stretched in browsers while the restream was VAAPI encoded, since the
+      # encoder gave go2rtc no SPS/PPS headers. Not re-checked with libx264.
+      # The kiosk plays the RTSP stream instead.
       http:
         port: 5000
       # go2rtc RTSP: rtsp://10.119.20.12:8554/birdseye
@@ -440,8 +442,12 @@ configMaps:
         snapshots:
           enabled: false
 
-        ffmpeg:
-          hwaccel_args: preset-vaapi
+        # NOTE: No VAAPI here. The APU has one VCN engine and a 512 MiB frame
+        # buffer, and the main Frigate uses most of it. With both instances on
+        # VAAPI the VCN faulted every hour or so from 2026-09-08 06:56 EEST, and
+        # at 15:29 the GPU reset failed. Every VAAPI ffmpeg on the node was then
+        # stuck in the kernel until a hard reset. The CPU decodes nine 640x360
+        # streams at 10 fps without noticing.
 
         birdseye:
           enabled: true
