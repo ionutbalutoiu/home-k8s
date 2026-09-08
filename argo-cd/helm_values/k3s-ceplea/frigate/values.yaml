@@ -80,8 +80,8 @@ controllers:
         envFrom:
           - secretRef:
               name: frigate-secrets
-        securityContext:
-          privileged: true
+        # Not privileged: this instance runs on the CPU and must not see the
+        # host's /dev/dri, otherwise Frigate's hwaccel auto-detect grabs it.
         resources:
           requests:
             # Software decode of 9 sub-streams plus the libx264 Birdseye encode.
@@ -448,6 +448,11 @@ configMaps:
         # at 15:29 the GPU reset failed. Every VAAPI ffmpeg on the node was then
         # stuck in the kernel until a hard reset. The CPU decodes nine 640x360
         # streams at 10 fps without noticing.
+        # hwaccel_args defaults to "auto", and the privileged container can see
+        # /dev/dri, so leaving the key out still picks VAAPI. The empty list
+        # turns it off.
+        ffmpeg:
+          hwaccel_args: []
 
         birdseye:
           enabled: true
@@ -455,7 +460,7 @@ configMaps:
           height: 1080
           mode: continuous
           # Published by go2rtc as rtsp://<service ip>:8554/birdseye (H.264,
-          # VAAPI encoded). Play it with a native RTSP client (mpv), not a
+          # libx264 encoded). Play it with a native RTSP client (mpv), not a
           # browser: see the service note.
           restream: true
 
