@@ -1,4 +1,4 @@
-FROM alpine:3.24.1
+FROM alpine:3.24.2
 
 # renovate: datasource=repology depName=alpine_3_24/openvpn versioning=loose
 ENV OPENVPN_VERSION="2.7.7-r0"
